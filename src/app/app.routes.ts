@@ -1,3 +1,13 @@
 import { Routes } from '@angular/router';
+import { Home } from './features/home/home';
 
-export const routes: Routes = [];
+const routes: Routes = [
+    {
+        path: '',
+        component: Home,
+        title: 'Space'
+      }
+];
+
+export default routes;
+
