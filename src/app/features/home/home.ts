@@ -11,23 +11,46 @@ import { debounceTime } from 'rxjs/operators';
 })
 export class Home {
 
-  canvasRef : Signal<ElementRef<HTMLCanvasElement> | undefined> = viewChild<ElementRef<HTMLCanvasElement>>('spaceCanvas');
+  private readonly canvasRef : Signal<ElementRef<HTMLCanvasElement> | undefined> = viewChild<ElementRef<HTMLCanvasElement>>('spaceCanvas');
   private readonly destroyRef = inject(DestroyRef);
   private readonly doc = inject(DOCUMENT);
   protected readonly shipWidth : number = 56; // Breite des Raumschiffs
   protected readonly shipHeight : number = 70; // Höhe des Raumschiffs
   protected readonly viewportMargin : number = 0.05; // 5% Rand um Canvas
 
+  private boundKeyDown : (event: KeyboardEvent) => void = (event: KeyboardEvent) => this.handleKeyDown(event);
+  private shipImg : HTMLImageElement = new Image();
+  protected shipX : number = 0;
+  protected shipY : number = 0;
+  protected lastShipX : number = this.shipX;
+
+
+  /** Initialisiert das Raumschiff */
+  constructor() {
+    this.shipImg.src = '/ship.png';
+    this.shipImg.onload = () => {
+      this.draw();
+    };
+  }
+
+
   /** Startet das Spiel */
   protected ngAfterViewInit(): void {
     this.setCanvasSize();
+    this.shipX = (this.canvasRef()?.nativeElement.width ?? 100)/2-this.shipWidth/2;
+    this.shipY = (this.canvasRef()?.nativeElement.height ?? 100)-this.shipHeight;
+    this.lastShipX = this.shipX;
     this.draw();
+    this.doc.addEventListener('keydown', this.boundKeyDown);
     fromEvent(this.win, 'resize')
       .pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.setCanvasSize();
+        this.shipX = (this.canvasRef()?.nativeElement.width ?? 100)/2-this.shipWidth/2;
+        this.shipY = (this.canvasRef()?.nativeElement.height ?? 100)-this.shipHeight;
+        this.lastShipX = this.shipX;
         this.draw();
-      });
+    });
   }
 
   /** Liefert das Window-Objekt */
@@ -58,12 +81,32 @@ export class Home {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const img = new Image();
-    img.src = '/ship.png'
-    img.onload = () => {
-      ctx.drawImage(img, canvas.width/2-this.shipWidth/2, canvas.height-this.shipHeight, this.shipWidth, this.shipHeight);
-    };
+    this.drawShip();
 
+  }
+
+  /** Löscht das letzte Raumschiff und zeichnet das neue */
+  private drawShip(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(this.lastShipX, this.shipY, this.shipWidth, this.shipHeight);
+    this.lastShipX = this.shipX;
+    ctx.drawImage(this.shipImg, this.shipX, this.shipY, this.shipWidth, this.shipHeight);
+  }
+
+  /** Bewegt das Schiff nach rechts/links über die Pfeiltasten-Eingaben des Benutzers */
+  private handleKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
+        if (event.key === 'ArrowRight') {
+          this.shipX += 10;
+        }
+        if (event.key === 'ArrowLeft') {
+          this.shipX -= 10;
+        }
+      }
+    this.drawShip();
   }
 
 }
