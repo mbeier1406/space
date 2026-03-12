@@ -3,6 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
+import Star from '../../core/models/star';
+
 @Component({
   selector: 'app-home',
   imports: [],
@@ -24,8 +26,9 @@ export class Home {
   protected shipY : number = 0;
   protected lastShipX : number = this.shipX;
 
+  protected stars : Star[] = [];
 
-  /** Initialisiert das Raumschiff */
+  /** Initialisiert das Raumschiff und die Sterne */
   constructor() {
     this.shipImg.src = '/ship.png';
     this.shipImg.onload = () => {
@@ -40,6 +43,15 @@ export class Home {
     this.shipX = (this.canvasRef()?.nativeElement.width ?? 100)/2-this.shipWidth/2;
     this.shipY = (this.canvasRef()?.nativeElement.height ?? 100)-this.shipHeight;
     this.lastShipX = this.shipX;
+    const starCount = Math.floor(Math.random()*100);
+    for (let i = 0; i < starCount; i++) {
+      this.stars.push({
+        x: Math.random() * (this.canvasRef()?.nativeElement.width ?? 100),
+        y: Math.random() * (this.canvasRef()?.nativeElement.height ?? 100),
+        radius: 1,
+        color: '#ffffff',
+      });
+    }
     this.draw();
     this.doc.addEventListener('keydown', this.boundKeyDown);
     fromEvent(this.win, 'resize')
@@ -81,8 +93,20 @@ export class Home {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    this.drawStars();
     this.drawShip();
+  }
 
+  /** Zeichnet die Sterne */
+  private drawStars(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    for (const star of this.stars) {
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.radius, 0, 2 * Math.PI);
+      ctx.fillStyle = star.color;
+      ctx.fill();
+    }
   }
 
   /** Löscht das letzte Raumschiff und zeichnet das neue */
