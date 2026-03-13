@@ -145,15 +145,17 @@ export class Home {
       this.drawShip();
     }
     if (event.key === 'Space' || event.key === ' ') {
-      this.bullets.push({
-        x: this.shipX,
-        y: this.shipY-15,
-        oldY: this.shipY-15,
-        velocityY: 10,
-        width: 5,
-        height: 15,
-        color: '#ffffff',
-      });
+      if (this.bullets.length < 4) {
+        this.bullets.push({
+          x: this.shipX,
+          y: this.shipY-15,
+          oldY: this.shipY-15,
+          velocityY: 10,
+          width: 5,
+          height: 15,
+          color: '#ffffff',
+        });
+      }
     }
     console.log('shipX', this.shipX);
   }
