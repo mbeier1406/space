@@ -4,6 +4,7 @@ import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
 import Star from '../../core/models/star';
+import Bullet from '../../core/models/bullet';
 
 @Component({
   selector: 'app-home',
@@ -20,13 +21,17 @@ export class Home {
   protected readonly shipHeight : number = 70; // Höhe des Raumschiffs
   protected readonly viewportMargin : number = 0.05; // 5% Rand um Canvas
 
-  private boundKeyDown : (event: KeyboardEvent) => void = (event: KeyboardEvent) => this.handleKeyDown(event);
+  private tickInterval : ReturnType<typeof setInterval> | null = null;
+  private worker : Worker | null = null;
+
+  private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
   private shipImg : HTMLImageElement = new Image();
   protected shipX : number = 0;
   protected shipY : number = 0;
   protected lastShipX : number = this.shipX;
 
   protected stars : Star[] = [];
+  protected bullets : Bullet[] = [];
 
   /** Initialisiert das Raumschiff und die Sterne */
   constructor() {
@@ -47,13 +52,12 @@ export class Home {
     for (let i = 0; i < starCount; i++) {
       this.stars.push({
         x: Math.random() * (this.canvasRef()?.nativeElement.width ?? 100),
-        y: Math.random() * (this.canvasRef()?.nativeElement.height ?? 100),
+        y: Math.random() * ((this.canvasRef()?.nativeElement.height ?? 100)-this.shipHeight),
         radius: 1,
         color: '#ffffff',
       });
     }
     this.draw();
-    this.doc.addEventListener('keydown', this.boundKeyDown);
     fromEvent(this.win, 'resize')
       .pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -95,6 +99,7 @@ export class Home {
 
     this.drawStars();
     this.drawShip();
+    this.drawBullets();
   }
 
   /** Zeichnet die Sterne */
@@ -119,18 +124,61 @@ export class Home {
     ctx.drawImage(this.shipImg, this.shipX, this.shipY, this.shipWidth, this.shipHeight);
   }
 
+  /** Zeichnet die aktiven Bullets */
+  private drawBullets(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    for (const bullet of this.bullets) {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(bullet.x, bullet.oldY, bullet.width, bullet.height);
+      ctx.fillStyle = bullet.color;
+      ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+    }
+  }
+
   /** Bewegt das Schiff nach rechts/links über die Pfeiltasten-Eingaben des Benutzers */
   private handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
-        if (event.key === 'ArrowRight') {
-          this.shipX += 10;
-        }
-        if (event.key === 'ArrowLeft') {
-          this.shipX -= 10;
-        }
-      }
-    this.drawShip();
+      if (event.key === 'ArrowRight') this.shipX += 10;
+      if (event.key === 'ArrowLeft') this.shipX -= 10;
+      this.drawShip();
+    }
+    if (event.key === 'Space' || event.key === ' ') {
+      this.bullets.push({
+        x: this.shipX,
+        y: this.shipY-15,
+        oldY: this.shipY-15,
+        velocityY: 10,
+        width: 5,
+        height: 15,
+        color: '#ffffff',
+      });
+    }
+    console.log('shipX', this.shipX);
+  }
+
+  /** Startet das Spiel */
+  protected startTick(): void {
+    this.stopTick();
+    this.worker = new Worker(new URL('../../core/worker/space-worker', import.meta.url), { type: 'module' });
+    this.worker.onmessage = (event: MessageEvent) => {
+      this.bullets = event.data.bullets;
+      this.draw();    
+    };
+    this.tickInterval = setInterval(() => this.worker?.postMessage({ type: 'tick', bullets: this.bullets }), 250);
+    this.doc.addEventListener('keydown', this.boundKeyDown);
+    console.log('started');
+  }
+
+  /** Stoppt das Spiel */
+  protected stopTick(): void {
+    this.tickInterval && clearInterval(this.tickInterval);
+    this.tickInterval = null;
+    this.worker?.terminate();
+    this.worker = null;
+    this.doc.removeEventListener('keydown', this.boundKeyDown);
+    console.log('stopped');
   }
 
 }
