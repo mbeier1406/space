@@ -24,6 +24,7 @@ export class Home {
   private tickInterval : ReturnType<typeof setInterval> | null = null;
   private worker : Worker | null = null;
 
+  private rafId: number | null = null; // Letzte Frame-ID für requestAnimationFrame, für Spielstopp
   private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
   private shipImg : HTMLImageElement = new Image();
   protected shipX : number = 0;
@@ -85,6 +86,13 @@ export class Home {
     canvas.width = Math.floor(this.win.innerWidth * factor);
     canvas.height = Math.floor(this.win.innerHeight * factor);
   }
+
+  /** Zeichnet das Spiel */
+  private gameLoop = (): void => {
+    this.moveBullets();
+    this.draw();
+    this.rafId = requestAnimationFrame(this.gameLoop);
+  };
   
   /** Zeichnet den Hintergrund des Canvas-Elements und die Raumschiffe */
   private draw(): void {
@@ -142,15 +150,14 @@ export class Home {
       event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
       if (event.key === 'ArrowRight') this.shipX += 10;
       if (event.key === 'ArrowLeft') this.shipX -= 10;
-      this.drawShip();
     }
     if (event.key === 'Space' || event.key === ' ') {
-      if (this.bullets.length < 4) {
+      if (this.bullets.length < 3) {
         this.bullets.push({
           x: this.shipX,
           y: this.shipY-15,
           oldY: this.shipY-15,
-          velocityY: 10,
+          velocityY: 5,
           width: 5,
           height: 15,
           color: '#ffffff',
@@ -164,12 +171,10 @@ export class Home {
   protected startTick(): void {
     this.stopTick();
     this.worker = new Worker(new URL('../../core/worker/space-worker', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (event: MessageEvent) => {
-      this.bullets = event.data.bullets;
-      this.draw();    
-    };
+    this.worker.onmessage = (event: MessageEvent) => this.bullets = event.data.bullets;    
     this.tickInterval = setInterval(() => this.worker?.postMessage({ type: 'tick', bullets: this.bullets }), 250);
     this.doc.addEventListener('keydown', this.boundKeyDown);
+    this.rafId = requestAnimationFrame(this.gameLoop);
     console.log('started');
   }
 
@@ -180,7 +185,22 @@ export class Home {
     this.worker?.terminate();
     this.worker = null;
     this.doc.removeEventListener('keydown', this.boundKeyDown);
+    if (this.rafId != null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
     console.log('stopped');
+  }
+
+  /** Berechnet die neue Position der Bullets und entfernt die Bullets außerhalb des Bildschirms */
+  protected moveBullets(): void {
+    this.bullets = this.bullets
+      .filter((bullet: Bullet) => bullet.y >= 0)
+      .map((bullet: Bullet) => ({
+        ...bullet,
+        oldY: bullet.y,
+        y: bullet.y - bullet.velocityY,
+      }));
   }
 
 }
