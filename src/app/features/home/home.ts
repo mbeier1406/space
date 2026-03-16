@@ -82,9 +82,15 @@ export class Home {
   private setCanvasSize(): void {
     const canvas = this.canvasRef()?.nativeElement;
     if (!canvas) return;
+    const container = canvas.closest('.space-canvas') as HTMLElement | null;
     const factor = 1 - 2 * this.viewportMargin;
-    canvas.width = Math.floor(this.win.innerWidth * factor);
-    canvas.height = Math.floor(this.win.innerHeight * factor);
+    if (container && container.clientWidth > 0 && container.clientHeight > 0) {
+      canvas.width = Math.floor(container.clientWidth);
+      canvas.height = Math.floor(container.clientHeight);
+    } else {
+      canvas.width = Math.floor(this.win.innerWidth * factor);
+      canvas.height = Math.floor(this.win.innerHeight * factor);
+    }
   }
 
   /** Zeichnet das Spiel */
