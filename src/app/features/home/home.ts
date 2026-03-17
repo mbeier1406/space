@@ -26,6 +26,9 @@ export class Home {
 
   private rafId: number | null = null; // Letzte Frame-ID für requestAnimationFrame, für Spielstopp
   private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
+
+  private canvasWidth : number = 0;
+  private canvasHeight : number = 0;
   private shipImg : HTMLImageElement = new Image();
   protected shipX : number = 0;
   protected shipY : number = 0;
@@ -86,11 +89,13 @@ export class Home {
     const factor = 1 - 2 * this.viewportMargin;
     if (container && container.clientWidth > 0 && container.clientHeight > 0) {
       canvas.width = Math.floor(container.clientWidth);
-      canvas.height = Math.floor(container.clientHeight);
+      canvas.height = Math.floor(container.clientHeight - 10); // für den Header
     } else {
       canvas.width = Math.floor(this.win.innerWidth * factor);
       canvas.height = Math.floor(this.win.innerHeight * factor);
     }
+    this.canvasWidth = canvas.width;
+    this.canvasHeight = canvas.height;
   }
 
   /** Zeichnet das Spiel */
@@ -154,8 +159,8 @@ export class Home {
   private handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
-      if (event.key === 'ArrowRight') this.shipX += 10;
-      if (event.key === 'ArrowLeft') this.shipX -= 10;
+      if (event.key === 'ArrowRight' && this.shipX < this.canvasWidth - this.shipWidth) this.shipX += 10;
+      if (event.key === 'ArrowLeft' && this.shipX > 0) this.shipX -= 10;
     }
     if (event.key === 'Space' || event.key === ' ') {
       if (this.bullets.length < 3) {
@@ -163,7 +168,7 @@ export class Home {
           x: this.shipX,
           y: this.shipY-15,
           oldY: this.shipY-15,
-          velocityY: 5,
+          velocityY: 15,
           width: 5,
           height: 15,
           color: '#ffffff',

@@ -11,8 +11,8 @@ p {
   font-size: 0.65rem;
   color: #00ff88;
   text-align: center;
-  margin: 0 0 0.2rem;
   text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+  margin: 1rem 0 0.5rem;
 }
 
 aside {
@@ -46,20 +46,38 @@ aside button:active {
   transform: scale(0.98);
 }
 
+.game-row {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  padding: 0.25rem 0;
+}
+
 .space-canvas {
   display: flex;
   justify-content: center;
   align-items: center;
   flex: 1;
   min-height: 0;
-  margin-top: 0;
-  margin-bottom: 0;
+  min-width: 0;
 }
 
 .space-canvas canvas {
   display: block;
   margin-left: auto;
   margin-right: auto;
+  min-height: 0;
+  min-width: 0;
   border: 3px solid #00f5ff;
   border-radius: 4px;
   box-shadow:
