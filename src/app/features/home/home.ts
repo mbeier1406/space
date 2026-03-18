@@ -2,6 +2,7 @@ import { Component, DestroyRef, DOCUMENT, ElementRef, inject, Signal, viewChild 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 import Star from '../../core/models/star';
 import Bullet from '../../core/models/bullet';
@@ -38,7 +39,7 @@ export class Home {
   protected bullets : Bullet[] = [];
 
   /** Initialisiert das Raumschiff und die Sterne */
-  constructor() {
+  constructor(private router: Router) {
     this.shipImg.src = '/ship.png';
     this.shipImg.onload = () => {
       this.draw();
@@ -201,6 +202,11 @@ export class Home {
       this.rafId = null;
     }
     console.log('stopped');
+  }
+
+  /** Kehrt zur Startseite zurück */
+  protected backToStart(): void {
+    this.router.navigate(['/']);
   }
 
   /** Berechnet die neue Position der Bullets und entfernt die Bullets außerhalb des Bildschirms */

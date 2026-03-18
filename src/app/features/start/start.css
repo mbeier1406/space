@@ -1,0 +1,67 @@
+:host {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+  
+.start-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    text-align: center;
+}
+  
+.title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    color: #00f5ff;
+    text-shadow: 0 0 15px rgba(0, 245, 255, 0.8);
+    margin: 0;
+    letter-spacing: 0.15em;
+}
+  
+.subtitle {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.9rem;
+    color: #00ff88;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+    margin: 0;
+}
+  
+.ship-wrap {
+    margin: 0.5rem 0;
+}
+  
+.ship {
+    display: block;
+    width: 120px;
+    height: auto;
+    filter: drop-shadow(0 0 12px rgba(0, 245, 255, 0.4));
+}
+  
+.btn-start {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.65rem;
+    padding: 0.75rem 1.5rem;
+    border: 3px solid #00f5ff;
+    background: transparent;
+    color: #00f5ff;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+  
+.btn-start:hover {
+    background: #00f5ff;
+    color: #0c0c14;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.6);
+}
+  
+.btn-start:active {
+    transform: scale(1.5);
+}
