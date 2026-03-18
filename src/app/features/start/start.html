@@ -1,8 +1,11 @@
-<div class="start-screen">
-    <h1 class="title">Space Shooter</h1>
-    <p class="subtitle">An Arcade Space Game</p>
-    <div class="ship-wrap">
-      <img src="/ship.png" alt="" class="ship" />
+<div class="start-page">
+    <div class="starfield" aria-hidden="true"></div>
+    <div class="start-screen">
+        <h1 class="title">Space Shooter</h1>
+        <p class="subtitle">An Arcade Space Game</p>
+        <div class="ship-wrap">
+        <img src="/ship.png" alt="" class="ship" />
+        </div>
+        <button type="button" class="btn-start" (click)="startGame()">Start Game</button>
     </div>
-    <button type="button" class="btn-start" (click)="startGame()">Start Game</button>
 </div>
