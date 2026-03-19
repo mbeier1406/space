@@ -53,6 +53,16 @@ export function repositionShip(ship: Ship, canvasWidth: number, canvasHeight: nu
     ship!.lastPositionX = ship!.positionX;
 }
 
+/**
+ * Bewegt das Raumschiff nach links oder rechts innerhalb des Canvas.
+ * @param ship - Das Raumschiff
+ * @param direction - Die Richtung, in die das Raumschiff bewegt werden soll
+ * @param canvasWidth - Die Breite des Canvas
+ * @returns void
+ * @example
+ * moveShip(ship!, 'ArrowRight', 1000);
+ * @param canvasWidth 
+ */
 export function moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', canvasWidth: number): void {
     if (direction === 'ArrowLeft') {
         if (ship!.positionX > 0) ship!.positionX -= 10;
@@ -61,4 +71,20 @@ export function moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', canv
             ship!.positionX += 10;
         }
     }
+}
+
+/**
+ * Zeichnet das Raumschiff auf den Canvas. Löscht die letzte Position des Raumschiffs und zeichnet es neu.
+ * Aktualisiert die letzte Position des Raumschiffs.
+ * @param ship - Das Raumschiff
+ * @param ctx - Der CanvasRenderingContext2D
+ * @returns void
+ * @example
+ * drawShip(ship!, ctx);
+ */
+export function drawShip(ship: Ship, ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(ship!.lastPositionX, ship!.positionY, ship!.width, ship!.height);
+    ship!.lastPositionX = ship!.positionX;
+    ctx.drawImage(ship!.image, ship!.positionX, ship!.positionY, ship!.width, ship!.height);
 }

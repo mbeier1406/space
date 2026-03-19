@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 
 import Star from '../../core/models/star';
 import Bullet from '../../core/models/bullet';
-import Ship, { createShip, moveShip, repositionShip } from '../../core/models/ship';
+import Ship, { createShip, drawShip, moveShip, repositionShip } from '../../core/models/ship';
 
 @Component({
   selector: 'app-home',
@@ -26,9 +26,6 @@ export class Home {
 
   private rafId: number | null = null; // Letzte Frame-ID für requestAnimationFrame, für Spielstopp
   private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
-
-  private canvasWidth : number = 0;
-  private canvasHeight : number = 0;
 
   protected ship : Ship | undefined = undefined;
   protected stars : Star[] = [];
@@ -91,8 +88,6 @@ export class Home {
       canvas.width = Math.floor(this.win.innerWidth * factor);
       canvas.height = Math.floor(this.win.innerHeight * factor);
     }
-    this.canvasWidth = canvas.width;
-    this.canvasHeight = canvas.height;
   }
 
   /** Zeichnet das Spiel */
@@ -134,10 +129,7 @@ export class Home {
   private drawShip(): void {
     const ctx = this.ctx;
     if (!ctx) return;
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(this.ship!.lastPositionX, this.ship!.positionY, this.ship!.width, this.ship!.height);
-    this.ship!.lastPositionX = this.ship!.positionX;
-    ctx.drawImage(this.ship!.image, this.ship!.positionX, this.ship!.positionY, this.ship!.width, this.ship!.height);
+    drawShip(this.ship!, ctx);
   }
 
   /** Zeichnet die aktiven Bullets */
@@ -156,7 +148,7 @@ export class Home {
   private handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
-      moveShip(this.ship!, event.key as 'ArrowRight' | 'ArrowLeft', this.canvasWidth);
+      moveShip(this.ship!, event.key as 'ArrowRight' | 'ArrowLeft', this.canvasRef()?.nativeElement.width ?? 100);
     }
     if (event.key === 'Space' || event.key === ' ') {
       if (this.bullets.length < 3) {
