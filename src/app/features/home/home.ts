@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 
 import Star from '../../core/models/star';
 import Bullet from '../../core/models/bullet';
+import Ship, { createShip, moveShip, repositionShip } from '../../core/models/ship';
 
 @Component({
   selector: 'app-home',
@@ -18,8 +19,6 @@ export class Home {
   private readonly canvasRef : Signal<ElementRef<HTMLCanvasElement> | undefined> = viewChild<ElementRef<HTMLCanvasElement>>('spaceCanvas');
   private readonly destroyRef = inject(DestroyRef);
   private readonly doc = inject(DOCUMENT);
-  protected readonly shipWidth : number = 56; // Breite des Raumschiffs
-  protected readonly shipHeight : number = 70; // Höhe des Raumschiffs
   protected readonly viewportMargin : number = 0.05; // 5% Rand um Canvas
 
   private tickInterval : ReturnType<typeof setInterval> | null = null;
@@ -30,34 +29,33 @@ export class Home {
 
   private canvasWidth : number = 0;
   private canvasHeight : number = 0;
-  private shipImg : HTMLImageElement = new Image();
-  protected shipX : number = 0;
-  protected shipY : number = 0;
-  protected lastShipX : number = this.shipX;
 
+  protected ship : Ship | undefined = undefined;
   protected stars : Star[] = [];
   protected bullets : Bullet[] = [];
 
-  /** Initialisiert das Raumschiff und die Sterne */
+  /** Initialisiert die Komponente */
   constructor(private router: Router) {
-    this.shipImg.src = '/ship.png';
-    this.shipImg.onload = () => {
-      this.draw();
-    };
   }
 
 
-  /** Startet das Spiel */
+  /** Initialisiert das Raumschiff und die Sterne und startet das Spiel */
   protected ngAfterViewInit(): void {
     this.setCanvasSize();
-    this.shipX = (this.canvasRef()?.nativeElement.width ?? 100)/2-this.shipWidth/2;
-    this.shipY = (this.canvasRef()?.nativeElement.height ?? 100)-this.shipHeight;
-    this.lastShipX = this.shipX;
+    const canvasW = this.canvasRef()?.nativeElement.width ?? 100;
+    const canvasH = this.canvasRef()?.nativeElement.height ?? 100;
+    const shipW = 56;
+    const shipH = 70;
+    this.ship = createShip(
+      canvasW / 2 - shipW / 2,
+      canvasH - shipH,
+      () => this.draw()
+    );  
     const starCount = Math.floor(Math.random()*100);
     for (let i = 0; i < starCount; i++) {
       this.stars.push({
         x: Math.random() * (this.canvasRef()?.nativeElement.width ?? 100),
-        y: Math.random() * ((this.canvasRef()?.nativeElement.height ?? 100)-this.shipHeight),
+        y: Math.random() * ((this.canvasRef()?.nativeElement.height ?? 100)-this.ship!.height),
         radius: 1,
         color: '#ffffff',
       });
@@ -67,9 +65,7 @@ export class Home {
       .pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.setCanvasSize();
-        this.shipX = (this.canvasRef()?.nativeElement.width ?? 100)/2-this.shipWidth/2;
-        this.shipY = (this.canvasRef()?.nativeElement.height ?? 100)-this.shipHeight;
-        this.lastShipX = this.shipX;
+        repositionShip(this.ship!, this.canvasRef()?.nativeElement.width ?? 100, this.canvasRef()?.nativeElement.height ?? 100);
         this.draw();
     });
   }
@@ -139,9 +135,9 @@ export class Home {
     const ctx = this.ctx;
     if (!ctx) return;
     ctx.fillStyle = '#000000';
-    ctx.fillRect(this.lastShipX, this.shipY, this.shipWidth, this.shipHeight);
-    this.lastShipX = this.shipX;
-    ctx.drawImage(this.shipImg, this.shipX, this.shipY, this.shipWidth, this.shipHeight);
+    ctx.fillRect(this.ship!.lastPositionX, this.ship!.positionY, this.ship!.width, this.ship!.height);
+    this.ship!.lastPositionX = this.ship!.positionX;
+    ctx.drawImage(this.ship!.image, this.ship!.positionX, this.ship!.positionY, this.ship!.width, this.ship!.height);
   }
 
   /** Zeichnet die aktiven Bullets */
@@ -160,15 +156,14 @@ export class Home {
   private handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
-      if (event.key === 'ArrowRight' && this.shipX < this.canvasWidth - this.shipWidth) this.shipX += 10;
-      if (event.key === 'ArrowLeft' && this.shipX > 0) this.shipX -= 10;
+      moveShip(this.ship!, event.key as 'ArrowRight' | 'ArrowLeft', this.canvasWidth);
     }
     if (event.key === 'Space' || event.key === ' ') {
       if (this.bullets.length < 3) {
         this.bullets.push({
-          x: this.shipX,
-          y: this.shipY-15,
-          oldY: this.shipY-15,
+          x: this.ship!.positionX+5,
+          y: this.ship!.positionY-15,
+          oldY: this.ship!.positionY-15,
           velocityY: 15,
           width: 5,
           height: 15,
@@ -176,7 +171,7 @@ export class Home {
         });
       }
     }
-    console.log('shipX', this.shipX);
+    console.log('shipX', this.ship!.positionX);
   }
 
   /** Startet das Spiel */
