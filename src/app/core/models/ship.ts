@@ -9,6 +9,9 @@ interface Ship {
 }
 export default Ship;
 
+export const SHIP_WIDTH = 56;
+export const SHIP_HEIGHT = 70;
+
 /**
  * Erstellt ein neues Raumschiff und lädt das Bild
  * @param positionX - Die X-Position des Raumschiffs
@@ -33,8 +36,8 @@ export function createShip(
       positionY,
       lastPositionX: positionX,
       image,
-      width: 56,
-      height: 70,
+      width: SHIP_WIDTH,
+      height: SHIP_HEIGHT,
     };
 }
 
