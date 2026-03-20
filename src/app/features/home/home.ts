@@ -4,10 +4,15 @@ import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
-import Star, { createStars, drawStars } from '../../core/models/star';
-import Bullet, { BULLET_HEIGHT, createBullet, drawBullets, moveBullets } from '../../core/models/bullet';
-import Ship, { createShip, drawShip, moveShip, repositionShip, SHIP_HEIGHT, SHIP_WIDTH } from '../../core/models/ship';
+import { Stage } from '../../core/stages/stages';
+import { Stage1 } from '../../core/stages/stage1';
 
+/**
+ * Home-Komponente für das Space-Spiel.
+ * Diese Komponente zeigt das Space-Spiel an und steuert es.
+ * @example
+ * <app-home></app-home>
+ */
 @Component({
   selector: 'app-home',
   imports: [],
@@ -28,9 +33,11 @@ export class Home {
   private rafId: number | null = null; // Letzte Frame-ID für requestAnimationFrame, für Spielstopp
   private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
 
-  protected ship : Ship | undefined = undefined;
-  protected stars : Star[] = [];
-  protected bullets : Bullet[] = [];
+  private currentStage : number = 1;
+  private readonly stages : Record<number, Stage> = {
+    1: new Stage1(),
+  };
+  private stage : Stage = this.stages[this.currentStage];
 
   /** Initialisiert die Komponente */
   constructor(private router: Router) {
@@ -50,18 +57,18 @@ export class Home {
     this.setCanvasSize();
     const canvasW = this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE;
     const canvasH = this.canvasRef()?.nativeElement.height ?? this.STD_CANVAS_SIZE;
-    this.ship = createShip(
-      canvasW / 2 - SHIP_WIDTH / 2,
-      canvasH - SHIP_HEIGHT,
+    this.stage.createShip(
+      canvasW / 2 - this.stage.getShipDimensions().x / 2,
+      canvasH - this.stage.getShipDimensions().y,
       () => this.draw()
     );
-    this.stars = createStars(canvasW, canvasH, this.STD_CANVAS_SIZE, SHIP_HEIGHT);
+    this.stage.createStars(canvasW, canvasH, this.STD_CANVAS_SIZE, this.stage.getShipDimensions().y);
     this.draw();
     fromEvent(this.win, 'resize')
       .pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.setCanvasSize();
-        repositionShip(this.ship!, this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE, this.canvasRef()?.nativeElement.height ?? this.STD_CANVAS_SIZE);
+        this.stage.setShipPosition(this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE, this.canvasRef()?.nativeElement.height ?? this.STD_CANVAS_SIZE);
         this.draw();
     });
   }
@@ -83,7 +90,7 @@ export class Home {
 
   /** Zeichnet das Spiel */
   private gameLoop = (): void => {
-    this.bullets = moveBullets(this.bullets);
+    this.stage.moveBullets();
     this.draw();
     this.rafId = requestAnimationFrame(this.gameLoop);
   };
@@ -94,21 +101,19 @@ export class Home {
     if (!ctx) return;
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    drawStars(this.stars, ctx);
-    drawShip(this.ship!, ctx);
-    drawBullets(this.bullets, ctx);
+    this.stage.drawStars(ctx);
+    this.stage.drawShip(ctx);
+    this.stage.drawBullets(ctx);
   }
 
   /** Bewegt das Schiff nach rechts/links über die Pfeiltasten-Eingaben des Benutzers */
   private handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
-      moveShip(this.ship!, event.key as 'ArrowRight' | 'ArrowLeft', this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE);
+      this.stage.moveShip(this.stage.getShip(), event.key as 'ArrowRight' | 'ArrowLeft', this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE);
     }
     if (event.key === 'Space' || event.key === ' ') {
-      if (this.bullets.length < 3) {
-        this.bullets.push(createBullet(this.ship!.positionX+10, this.ship!.positionY-BULLET_HEIGHT));
-      }
+      this.stage.createBullet(this.stage.getShip().positionX+10, this.stage.getShip().positionY-this.stage.getBulletDimensions().y);
     }
   }
 
@@ -116,8 +121,8 @@ export class Home {
   protected startTick(): void {
     this.stopTick();
     this.worker = new Worker(new URL('../../core/worker/space-worker', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (event: MessageEvent) => this.bullets = event.data.bullets;    
-    this.tickInterval = setInterval(() => this.worker?.postMessage({ type: 'tick', bullets: this.bullets }), 250);
+    this.worker.onmessage = (event: MessageEvent) => this.stage.getBullets = event.data.bullets;    
+    this.tickInterval = setInterval(() => this.worker?.postMessage({ type: 'tick', bullets: this.stage.getBullets() }), 250);
     this.doc.addEventListener('keydown', this.boundKeyDown);
     this.rafId = requestAnimationFrame(this.gameLoop);
     console.log('started');
