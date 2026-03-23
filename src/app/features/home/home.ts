@@ -55,14 +55,7 @@ export class Home {
   /** Initialisiert das Raumschiff und die Sterne und startet das Spiel */
   protected ngAfterViewInit(): void {
     this.setCanvasSize();
-    const canvasW = this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE;
-    const canvasH = this.canvasRef()?.nativeElement.height ?? this.STD_CANVAS_SIZE;
-    this.stage.createShip(
-      canvasW / 2 - this.stage.getShipDimensions().x / 2,
-      canvasH - this.stage.getShipDimensions().y,
-      () => this.draw()
-    );
-    this.stage.createStars(canvasW, canvasH, this.STD_CANVAS_SIZE, this.stage.getShipDimensions().y);
+    this.stage.initStage(this.canvasRef()?.nativeElement.width, this.canvasRef()?.nativeElement.height, this.STD_CANVAS_SIZE);
     this.draw();
     fromEvent(this.win, 'resize')
       .pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
@@ -90,7 +83,7 @@ export class Home {
 
   /** Zeichnet das Spiel */
   private gameLoop = (): void => {
-    this.stage.moveBullets();
+    this.stage.playStage();
     this.draw();
     this.rafId = requestAnimationFrame(this.gameLoop);
   };

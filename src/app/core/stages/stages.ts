@@ -22,6 +22,31 @@ export interface Stage {
     bullets: Bullet[];
 
     /**
+     * Initialisiert die Stage. Dazu zählt das zeichnen
+     * des Hintergrunds, der Sterne, der Raumschiffe usw. .
+     * @param canvasWidth - Die Breite des Canvas.
+     * @param canvasHeight - Die Höhe des Canvas.
+     * @param stdCanvasSize - Die Standardgröße des Canvas, falls canvasWidth/canvasHeight nicht gesetzt sind.
+     * @returns void
+     * @example
+     * initStage(1000, 1000, 100);
+     */
+    initStage(
+        canvasWidth: number | undefined,
+        canvasHeight: number | undefined,
+        stdCanvasSize: number
+    ): void;
+
+    /**
+     * Spielt die Stage ab. Dazu zählt das Bewegen aller automatisch gesteuerten Objekte,
+     * also der Bullets, der Raumschiffe usw.
+     * @returns void
+     * @example
+     * playStage();
+     */
+    playStage(): void;
+
+    /**
      * Erstellt eine bestimmte Anzahl von Sternen zur Darstellung auf dem Canvas.
      * @param canvasWidth - Die Breite des Canvas.
      * @param canvasHeight - Die Höhe des Canvas.

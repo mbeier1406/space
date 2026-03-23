@@ -21,6 +21,19 @@ export class Stage1 implements Stage {
     readonly maxBullets: number = 3;
     bullets: Bullet[] = [];    
 
+    public initStage(
+        canvasWidth: number,
+        canvasHeight: number,
+        stdCanvasSize: number
+    ): void {
+        this.createShip((canvasWidth ?? stdCanvasSize) / 2 - this.ship.width / 2, (canvasHeight ?? stdCanvasSize) - this.ship.height, () => {});
+        this.createStars(canvasWidth, canvasHeight, stdCanvasSize, this.ship.height);
+    }
+
+    public playStage(): void {
+        this.moveBullets();
+    }
+
     public createStars(
         canvasWidth: number,
         canvasHeight: number,
@@ -39,6 +52,7 @@ export class Stage1 implements Stage {
         positionY: number,
         onImageLoaded: () => void
     ): void {
+        console.log('createShip', positionX, positionY);
         this.ship = createShip(positionX, positionY, onImageLoaded);
     }
 
