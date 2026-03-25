@@ -26,11 +26,12 @@ export const SHIP_HEIGHT = 70;
 export function createShip(
     positionX: number,
     positionY: number,
+    img: string,
     onImageLoaded: () => void
   ): Ship {
     const image = new Image();
     image.onload = onImageLoaded;
-    image.src = '/ship.png';
+    image.src = img;
     return {
       positionX,
       positionY,
@@ -60,18 +61,17 @@ export function repositionShip(ship: Ship, canvasWidth: number, canvasHeight: nu
  * Bewegt das Raumschiff nach links oder rechts innerhalb des Canvas.
  * @param ship - Das Raumschiff
  * @param direction - Die Richtung, in die das Raumschiff bewegt werden soll
- * @param canvasWidth - Die Breite des Canvas
+ * @param speed - Die Geschwindigkeit, mit der das Raumschiff bewegt wird
  * @returns void
  * @example
- * moveShip(ship!, 'ArrowRight', 1000);
- * @param canvasWidth 
+ * moveShip(ship!, 'ArrowRight', 10, 1000);
  */
-export function moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', canvasWidth: number): void {
+export function moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', speed: number, canvasWidth: number): void {
     if (direction === 'ArrowLeft') {
-        if (ship!.positionX > 0) ship!.positionX -= 10;
+        if (ship!.positionX > 0) ship!.positionX -= speed;
     } else if (direction === 'ArrowRight') {
         if (ship!.positionX < canvasWidth - ship!.width) {
-            ship!.positionX += 10;
+            ship!.positionX += speed;
         }
     }
 }

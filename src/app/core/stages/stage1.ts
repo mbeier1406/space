@@ -16,8 +16,14 @@ export class Stage1 implements Stage {
     id: number = 1;
     name: string = 'Stage 1';
     description: string = 'This is the first stage of the game.';
+    canvasWidth: number = 0;
+    canvasHeight: number = 0;
+    stdCanvasSize: number = 0;
     stars: Star[] = [];
-    ship: Ship = createShip(0, 0, () => {});
+    ship: Ship = createShip(0, 0, '/ship.png', () => {});
+    enemyShips: Ship[] = [];
+    private enemyMoveTick = 0;
+    private readonly enemyMoveEvery = 4; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
     readonly maxBullets: number = 3;
     bullets: Bullet[] = [];    
 
@@ -26,21 +32,23 @@ export class Stage1 implements Stage {
         canvasHeight: number,
         stdCanvasSize: number
     ): void {
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+        this.stdCanvasSize = stdCanvasSize;
         this.createShip((canvasWidth ?? stdCanvasSize) / 2 - this.ship.width / 2, (canvasHeight ?? stdCanvasSize) - this.ship.height, () => {});
-        this.createStars(canvasWidth, canvasHeight, stdCanvasSize, this.ship.height);
+        this.createStars(this.ship.height);
+        this.createEnemyShip(canvasWidth / 2 - this.ship.width / 2, 0);
     }
 
     public playStage(): void {
         this.moveBullets();
+        this.moveEnemyShips();
     }
 
     public createStars(
-        canvasWidth: number,
-        canvasHeight: number,
-        stdCanvasSize: number,
         shipHeight: number
     ): void {
-        this.stars = createStars(canvasWidth, canvasHeight, stdCanvasSize, shipHeight);
+        this.stars = createStars(this.canvasWidth, this.canvasHeight, this.stdCanvasSize, shipHeight);
     }
 
     public drawStars(ctx: CanvasRenderingContext2D): void {
@@ -53,7 +61,7 @@ export class Stage1 implements Stage {
         onImageLoaded: () => void
     ): void {
         console.log('createShip', positionX, positionY);
-        this.ship = createShip(positionX, positionY, onImageLoaded);
+        this.ship = createShip(positionX, positionY, '/ship.png', onImageLoaded);
     }
 
     public getShip(): Ship {
@@ -72,11 +80,37 @@ export class Stage1 implements Stage {
         drawShip(this.ship, ctx);
     }
 
-    public moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', canvasWidth: number): void {
-        moveShip(ship, direction, canvasWidth);
+
+    public moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft'): void {
+        moveShip(ship, direction, 10, this.canvasWidth);
     }
 
-    public createBullet(positionX: number, positionY: number): void {
+    public createEnemyShip(positionX: number, positionY: number): void {
+        this.enemyShips.push(createShip(positionX, positionY, '/enemy-ship.png', () => {}));
+    }
+
+    public drawEnemyShips(ctx: CanvasRenderingContext2D): void {
+        this.enemyShips.forEach(ship => drawShip(ship, ctx));
+    }
+
+    public moveEnemyShips(): void {
+        this.enemyMoveTick++;
+        if (this.enemyMoveTick % this.enemyMoveEvery !== 0) {
+            return; // diesen Aufruf auslassen, weil es nicht die Zeit ist
+        }
+        this.enemyShips.forEach(ship => {
+            if ( ship.positionX < this.ship.positionX) {
+                moveShip(ship, 'ArrowRight', 2, this.canvasWidth);
+            } else {
+                moveShip(ship, 'ArrowLeft', 2, this.canvasWidth);
+            }
+        });
+        this.enemyMoveTick = 0;
+    }
+
+    public createBullet(): void {
+        const positionX = this.ship.positionX + this.ship.width / 2 - BULLET_WIDTH / 2;
+        const positionY = this.ship.positionY + this.ship.height / 2 - BULLET_HEIGHT / 2;
         if (this.bullets.length < this.maxBullets) {
             this.bullets.push(createBullet(positionX, positionY));
         }

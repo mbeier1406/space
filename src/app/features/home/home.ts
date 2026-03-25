@@ -96,6 +96,7 @@ export class Home {
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     this.stage.drawStars(ctx);
     this.stage.drawShip(ctx);
+    this.stage.drawEnemyShips(ctx);
     this.stage.drawBullets(ctx);
   }
 
@@ -106,7 +107,7 @@ export class Home {
       this.stage.moveShip(this.stage.getShip(), event.key as 'ArrowRight' | 'ArrowLeft', this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE);
     }
     if (event.key === 'Space' || event.key === ' ') {
-      this.stage.createBullet(this.stage.getShip().positionX+10, this.stage.getShip().positionY-this.stage.getBulletDimensions().y);
+      this.stage.createBullet();
     }
   }
 

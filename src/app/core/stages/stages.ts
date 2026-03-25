@@ -47,37 +47,11 @@ export interface Stage {
     playStage(): void;
 
     /**
-     * Erstellt eine bestimmte Anzahl von Sternen zur Darstellung auf dem Canvas.
-     * @param canvasWidth - Die Breite des Canvas.
-     * @param canvasHeight - Die Höhe des Canvas.
-     * @param stdCanvasSize - Die Standardgröße des Canvas.
-     * @param shipHeight - Die Höhe des Raumschiffs.
-     */
-    createStars(
-        canvasWidth: number,
-        canvasHeight: number,
-        stdCanvasSize: number,
-        shipHeight: number
-    ): void;
-
-    /**
      * Zeichnet die Sterne auf den Canvas.
      * @param ctx - Der CanvasRenderingContext2D.
      * @returns void
      */
     drawStars(ctx: CanvasRenderingContext2D): void;
-
-    /**
-     * Erstellt ein Raumschiff an der gegebenen Position und lädt das Bild.
-     * @param positionX - Die X-Position des Raumschiffs.
-     * @param positionY - Die Y-Position des Raumschiffs.
-     * @param onImageLoaded - Die Funktion, die aufgerufen wird, wenn das Bild geladen ist.
-     */
-    createShip(
-        positionX: number,
-        positionY: number,
-        onImageLoaded: () => void
-    ): void;
 
     /**
      * Setzt das Raumschiff an die gegebenen Position.
@@ -92,12 +66,6 @@ export interface Stage {
      * @returns Das Raumschiff.
      */
     getShip(): Ship;
-
-    /**
-     * Liefert die Größe des Raumschiffs.
-     * @returns Die Größe des Raumschiffs.
-     */
-    getShipDimensions(): Point2D;
 
     /**
      * Zeichnet das Raumschiff auf den Canvas.
@@ -116,29 +84,22 @@ export interface Stage {
     moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', canvasWidth: number): void;
 
     /**
-     * Erstellt eine Bullet an der gegebenen Position.
-     * @param positionX - Die X-Position der Bullet.
-     * @param positionY - Die Y-Position der Bullet.
+     * Zeichnet die feindlichen Schiffe auf den Canvas.
+     * @param ctx - Der CanvasRenderingContext2D.
+     * @returns void
      */
-    createBullet(positionX: number, positionY: number): void;
+    drawEnemyShips(ctx: CanvasRenderingContext2D): void;
+
+    /**
+     * Erstellt eine Bullet an der Position des Schiffs.
+     */
+    createBullet(): void;
 
     /**
      * Liefert die Bullets.
      * @returns Die Bullets.
      */
     getBullets(): Bullet[];
-
-    /**
-     * Liefert die Höhe der Bullets.
-     * @returns Die Höhe der Bullets.
-     */
-    getBulletDimensions(): Point2D;
-
-    /**
-     * Bewegt die Bullets.
-     * @returns void
-     */
-    moveBullets(): void;
 
     /**
      * Zeichnet die Bullets auf den Canvas.
