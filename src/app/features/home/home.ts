@@ -98,6 +98,7 @@ export class Home {
     this.stage.drawShip(ctx);
     this.stage.drawEnemyShips(ctx);
     this.stage.drawBullets(ctx);
+    this.stage.drawEnemyBullets(ctx);
   }
 
   /** Bewegt das Schiff nach rechts/links über die Pfeiltasten-Eingaben des Benutzers */

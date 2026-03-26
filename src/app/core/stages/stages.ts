@@ -84,13 +84,6 @@ export interface Stage {
     moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', canvasWidth: number): void;
 
     /**
-     * Zeichnet die feindlichen Schiffe auf den Canvas.
-     * @param ctx - Der CanvasRenderingContext2D.
-     * @returns void
-     */
-    drawEnemyShips(ctx: CanvasRenderingContext2D): void;
-
-    /**
      * Erstellt eine Bullet an der Position des Schiffs.
      */
     createBullet(): void;
@@ -107,5 +100,25 @@ export interface Stage {
      * @returns void
      */
     drawBullets(ctx: CanvasRenderingContext2D): void;
+
+    /**
+     * Zeichnet die feindlichen Schiffe auf den Canvas.
+     * @param ctx - Der CanvasRenderingContext2D.
+     * @returns void
+     */
+    drawEnemyShips(ctx: CanvasRenderingContext2D): void;
+
+    /**
+     * Erstellt eine oder mehrere Bullets für die feindlichen Schiffe.
+     * @returns void
+     */
+    createEnemyBullets(): void;
+
+    /**
+     * Zeichnet die feindlichen Bullets auf den Canvas.
+     * @param ctx - Der CanvasRenderingContext2D.
+     * @returns void
+     */
+    drawEnemyBullets(ctx: CanvasRenderingContext2D): void;
 
 }

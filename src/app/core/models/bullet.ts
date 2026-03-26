@@ -12,23 +12,23 @@ export default Bullet;
 
 export const BULLET_WIDTH = 5;
 export const BULLET_HEIGHT = 10;
-export const BULLET_VELOCITY_Y = 15;
 export const BULLET_COLOR = '#ffffff';
 
 /**
  * Erstellt eine neue Bullet
  * @param x - Die X-Position der Bullet
  * @param y - Die Y-Position der Bullet
+ * @param velocityY - Die Geschwindigkeit der Bullet in Y-Richtung
  * @returns Die neue Bullet
  * @example
  * const bullet = createBullet(100, 100);
  */
-export function createBullet(x: number, y: number): Bullet {
+export function createBullet(x: number, y: number, velocityY: number): Bullet {
     const bullet : Bullet = {
         x,
         y,
         oldY: y,
-        velocityY: BULLET_VELOCITY_Y,
+        velocityY: velocityY,
         width: BULLET_WIDTH,
         height: BULLET_HEIGHT,
         color: BULLET_COLOR
@@ -72,9 +72,9 @@ export function drawBullet(bullet: Bullet, ctx: CanvasRenderingContext2D): void 
  * @example
  * const newBullets = moveBullets(bullets);
  */
-export function moveBullets(bullets: Bullet[]): Bullet[] {
+export function moveBullets(bullets: Bullet[], canvasHeight: number): Bullet[] {
     return bullets
-        .filter((bullet: Bullet) => bullet.y >= 0)
+        .filter((bullet: Bullet) => bullet.y >= 0 && bullet.y <= canvasHeight)
         .map((bullet: Bullet) => ({
             ...bullet,
             oldY: bullet.y,

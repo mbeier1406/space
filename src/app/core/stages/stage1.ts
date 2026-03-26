@@ -21,11 +21,14 @@ export class Stage1 implements Stage {
     stdCanvasSize: number = 0;
     stars: Star[] = [];
     ship: Ship = createShip(0, 0, '/ship.png', () => {});
-    enemyShips: Ship[] = [];
+    enemyShip: Ship = createShip(0, 0, '/enemy-ship.png', () => {});
     private enemyMoveTick = 0;
     private readonly enemyMoveEvery = 4; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
     readonly maxBullets: number = 3;
     bullets: Bullet[] = [];    
+    readonly BULLET_VELOCITY_Y = 15;
+    enemyBullets: Bullet[] = [];
+    readonly ENEMY_BULLET_VELOCITY_Y = -15;
 
     public initStage(
         canvasWidth: number,
@@ -42,7 +45,9 @@ export class Stage1 implements Stage {
 
     public playStage(): void {
         this.moveBullets();
-        this.moveEnemyShips();
+        this.moveEnemyShip();
+        this.createEnemyBullets();
+        this.moveEnemyBullets();
     }
 
     public createStars(
@@ -85,34 +90,11 @@ export class Stage1 implements Stage {
         moveShip(ship, direction, 10, this.canvasWidth);
     }
 
-    public createEnemyShip(positionX: number, positionY: number): void {
-        this.enemyShips.push(createShip(positionX, positionY, '/enemy-ship.png', () => {}));
-    }
-
-    public drawEnemyShips(ctx: CanvasRenderingContext2D): void {
-        this.enemyShips.forEach(ship => drawShip(ship, ctx));
-    }
-
-    public moveEnemyShips(): void {
-        this.enemyMoveTick++;
-        if (this.enemyMoveTick % this.enemyMoveEvery !== 0) {
-            return; // diesen Aufruf auslassen, weil es nicht die Zeit ist
-        }
-        this.enemyShips.forEach(ship => {
-            if ( ship.positionX < this.ship.positionX) {
-                moveShip(ship, 'ArrowRight', 2, this.canvasWidth);
-            } else {
-                moveShip(ship, 'ArrowLeft', 2, this.canvasWidth);
-            }
-        });
-        this.enemyMoveTick = 0;
-    }
-
     public createBullet(): void {
         const positionX = this.ship.positionX + this.ship.width / 2 - BULLET_WIDTH / 2;
         const positionY = this.ship.positionY + this.ship.height / 2 - BULLET_HEIGHT / 2;
         if (this.bullets.length < this.maxBullets) {
-            this.bullets.push(createBullet(positionX, positionY));
+            this.bullets.push(createBullet(positionX, positionY, this.BULLET_VELOCITY_Y));
         }
     }
 
@@ -125,11 +107,49 @@ export class Stage1 implements Stage {
     }
 
     public moveBullets(): void {
-        this.bullets = moveBullets(this.bullets);
+        this.bullets = moveBullets(this.bullets, this.canvasHeight);
     }
 
     public drawBullets(ctx: CanvasRenderingContext2D): void {
         drawBullets(this.bullets, ctx);
+    }
+
+    public createEnemyShip(positionX: number, positionY: number): void {
+        this.enemyShip = createShip(positionX, positionY, '/enemy-ship.png', () => {});
+    }
+
+    public drawEnemyShips(ctx: CanvasRenderingContext2D): void {
+        drawShip(this.enemyShip, ctx);
+    }
+
+    public moveEnemyShip(): void {
+        this.enemyMoveTick++;
+        if (this.enemyMoveTick % this.enemyMoveEvery !== 0) {
+            return; // diesen Aufruf auslassen, weil es nicht die Zeit ist
+        }
+        if ( this.enemyShip.positionX < this.ship.positionX) {
+            moveShip(this.enemyShip, 'ArrowRight', 2, this.canvasWidth);
+        } else {
+            moveShip(this.enemyShip, 'ArrowLeft', 2, this.canvasWidth);
+        }
+        this.enemyMoveTick = 0;
+    }
+
+    public createEnemyBullets(): void {
+        if ( Math.random() < 0.9) return;
+        const positionX = this.enemyShip.positionX + this.enemyShip.width / 2 - BULLET_WIDTH / 2;
+        const positionY = this.enemyShip.positionY + this.enemyShip.height;
+        if (this.enemyBullets.length < 10) {
+            this.enemyBullets.push(createBullet(positionX, positionY, this.ENEMY_BULLET_VELOCITY_Y));
+        }
+    }
+
+    public drawEnemyBullets(ctx: CanvasRenderingContext2D): void {
+        drawBullets(this.enemyBullets, ctx);
+    }
+
+    public moveEnemyBullets(): void {
+        this.enemyBullets = moveBullets(this.enemyBullets, this.canvasHeight);
     }
 
 }
