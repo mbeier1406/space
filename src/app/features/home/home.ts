@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 
 import { Stage } from '../../core/stages/stages';
 import { Stage1 } from '../../core/stages/stage1';
+import { game, Game, GameState, stages } from '../../core/models/game';
 
 /**
  * Home-Komponente für das Space-Spiel.
@@ -33,11 +34,7 @@ export class Home {
   private rafId: number | null = null; // Letzte Frame-ID für requestAnimationFrame, für Spielstopp
   private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
 
-  private currentStage : number = 1;
-  private readonly stages : Record<number, Stage> = {
-    1: new Stage1(),
-  };
-  private stage : Stage = this.stages[this.currentStage];
+  private stage : Stage = game.currentStage;
 
   /** Initialisiert die Komponente */
   constructor(private router: Router) {
@@ -81,11 +78,22 @@ export class Home {
     }
   }
 
-  /** Zeichnet das Spiel */
+  /** Führt die Spielschleife aus */
   private gameLoop = (): void => {
-    this.stage.playStage();
-    this.draw();
-    this.rafId = requestAnimationFrame(this.gameLoop);
+    const game: Game = this.stage.playStage() as Game;
+    if ( game.gameState === GameState.Running ) {
+      this.draw();
+      this.rafId = requestAnimationFrame(this.gameLoop);
+    }
+    if ( game.gameState === GameState.GameOver ) {
+      this.stopTick();
+      // this.router.navigate(['/game-over']);
+    }
+    if ( game.gameState === GameState.NextStage ) {
+      game.currentStageNumber++;
+      game.currentStage = stages[game.currentStageNumber];
+      // ... next stage logic ...
+    }
   };
   
   /** Zeichnet den Hintergrund des Canvas-Elements und die Raumschiffe und die Bullets */

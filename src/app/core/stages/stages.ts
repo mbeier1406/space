@@ -1,7 +1,7 @@
-import Ship from "../models/ship";
 import Bullet from "../models/bullet";
+import Ship from "../models/ship";
 import Star from "../models/star";
-import { type Point2D } from "../../shared/point2d";
+import { Game, game } from "../models/game";
 
 /**
  * Interface für eine Stage.
@@ -44,7 +44,7 @@ export interface Stage {
      * @example
      * playStage();
      */
-    playStage(): void;
+    playStage(): Game;
 
     /**
      * Zeichnet die Sterne auf den Canvas.

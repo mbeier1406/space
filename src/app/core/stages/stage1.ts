@@ -3,6 +3,7 @@ import Ship, { createShip, drawShip, moveShip, repositionShip } from "../models/
 import Bullet, { BULLET_HEIGHT, BULLET_WIDTH, createBullet, drawBullets, moveBullets } from "../models/bullet";
 import { Stage } from "./stages";
 import { createPoint2D, type Point2D } from "../../shared/point2d";
+import { game, Game } from "../models/game";
 
 /**
  * Stage 1 - Erste Stage des Spiels.
@@ -43,11 +44,12 @@ export class Stage1 implements Stage {
         this.createEnemyShip(canvasWidth / 2 - this.ship.width / 2, 0);
     }
 
-    public playStage(): void {
+    public playStage(): Game {
         this.moveBullets();
         this.moveEnemyShip();
         this.createEnemyBullets();
         this.moveEnemyBullets();
+        return game;
     }
 
     public createStars(
