@@ -90,6 +90,7 @@ export class Home {
       // this.router.navigate(['/game-over']);
     }
     if ( game.gameState === GameState.NextStage ) {
+      this.stopTick();
       game.currentStageNumber++;
       game.currentStage = stages[game.currentStageNumber];
       // ... next stage logic ...
@@ -120,7 +121,15 @@ export class Home {
     }
   }
 
-  /** Startet das Spiel */
+  /** Initialisiert das Spiel */
+  protected initGame(): void {
+    this.canvasRef()?.nativeElement?.focus(); // Focus vom Button, damit Leertaste=Feuern nicht das Spiel neu startet
+    this.stopTick();
+    this.stage.initStage(this.canvasRef()?.nativeElement.width, this.canvasRef()?.nativeElement.height, this.STD_CANVAS_SIZE);
+    this.startTick();
+  }
+
+  /** Startet die Spielschleife */
   protected startTick(): void {
     this.stopTick();
     this.worker = new Worker(new URL('../../core/worker/space-worker', import.meta.url), { type: 'module' });

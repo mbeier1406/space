@@ -1,11 +1,13 @@
 <div class="game-row">
     <aside>
       <p>Arcade Space Game</p>
-      <button type="button" (click)="startTick()">Start Game</button>
+      <button type="button" (click)="initGame()">Start Game</button>
       <button type="button" (click)="stopTick()">Stop Game</button>
+      <button type="button" (click)="startTick()">Resume Game</button>
       <button type="button" (click)="backToStart()">Back To Start</button>
     </aside>
     <div class="space-canvas">
-      <canvas #spaceCanvas></canvas>
+      <!-- tabindex="0" um das Canvas fokussierbar zu machen -->
+      <canvas #spaceCanvas tabindex="0"></canvas>
     </div>
 </div>

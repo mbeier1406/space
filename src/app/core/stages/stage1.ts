@@ -3,7 +3,8 @@ import Ship, { createShip, drawShip, moveShip, repositionShip } from "../models/
 import Bullet, { BULLET_HEIGHT, BULLET_WIDTH, createBullet, drawBullets, moveBullets } from "../models/bullet";
 import { Stage } from "./stages";
 import { createPoint2D, type Point2D } from "../../shared/point2d";
-import { game, Game } from "../models/game";
+import { game, Game, GameState } from "../models/game";
+import { CollisionService } from "../services/collision.service";
 
 /**
  * Stage 1 - Erste Stage des Spiels.
@@ -20,6 +21,7 @@ export class Stage1 implements Stage {
     canvasWidth: number = 0;
     canvasHeight: number = 0;
     stdCanvasSize: number = 0;
+    collisionService: CollisionService = new CollisionService();
     stars: Star[] = [];
     ship: Ship = createShip(0, 0, '/ship.png', () => {});
     enemyShip: Ship = createShip(0, 0, '/enemy-ship.png', () => {});
@@ -42,6 +44,9 @@ export class Stage1 implements Stage {
         this.createShip((canvasWidth ?? stdCanvasSize) / 2 - this.ship.width / 2, (canvasHeight ?? stdCanvasSize) - this.ship.height, () => {});
         this.createStars(this.ship.height);
         this.createEnemyShip(canvasWidth / 2 - this.ship.width / 2, 0);
+        this.bullets = [];
+        this.enemyBullets = [];
+        game.gameState = GameState.Running;
     }
 
     public playStage(): Game {
@@ -49,6 +54,10 @@ export class Stage1 implements Stage {
         this.moveEnemyShip();
         this.createEnemyBullets();
         this.moveEnemyBullets();
+        const hits = this.collisionService.findHits([... this.bullets, ... this.enemyBullets], [this.ship, this.enemyShip]);
+        if (hits) {
+            game.gameState = hits[0].shipIndex === 0 ? GameState.GameOver : GameState.NextStage;
+        }
         return game;
     }
 
@@ -94,7 +103,7 @@ export class Stage1 implements Stage {
 
     public createBullet(): void {
         const positionX = this.ship.positionX + this.ship.width / 2 - BULLET_WIDTH / 2;
-        const positionY = this.ship.positionY + this.ship.height / 2 - BULLET_HEIGHT / 2;
+        const positionY = this.ship.positionY - BULLET_HEIGHT-1;
         if (this.bullets.length < this.maxBullets) {
             this.bullets.push(createBullet(positionX, positionY, this.BULLET_VELOCITY_Y));
         }
