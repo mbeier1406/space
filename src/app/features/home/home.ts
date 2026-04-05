@@ -1,4 +1,4 @@
-import { Component, DestroyRef, DOCUMENT, ElementRef, inject, Signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, DOCUMENT, ElementRef, inject, Signal, viewChild, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -27,7 +27,7 @@ export class Home {
   private readonly destroyRef = inject(DestroyRef);
   private readonly doc = inject(DOCUMENT);
   protected readonly viewportMargin : number = 0.05; // 5% Rand um Canvas
-
+  protected readonly cdr = inject(ChangeDetectorRef);
   private tickInterval : ReturnType<typeof setInterval> | null = null;
   private worker : Worker | null = null;
 
@@ -35,6 +35,9 @@ export class Home {
   private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
 
   private stage : Stage = game.currentStage;
+  protected showStageIntro: boolean = false;
+  protected introText: string = '';
+
 
   /** Initialisiert die Komponente */
   constructor(private router: Router) {
@@ -126,7 +129,13 @@ export class Home {
     this.canvasRef()?.nativeElement?.focus(); // Focus vom Button, damit Leertaste=Feuern nicht das Spiel neu startet
     this.stopTick();
     this.stage.initStage(this.canvasRef()?.nativeElement.width, this.canvasRef()?.nativeElement.height, this.STD_CANVAS_SIZE);
-    this.startTick();
+    this.introText = this.stage.name;
+    this.showStageIntro = true;
+    setTimeout(() => {
+      this.showStageIntro = false;
+      this.cdr.markForCheck();
+      this.startTick();
+    }, 5000); // x Sekunden Intro-Text anzeigen
   }
 
   /** Startet die Spielschleife */

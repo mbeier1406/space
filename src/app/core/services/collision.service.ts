@@ -35,10 +35,13 @@ export class CollisionService {
       const bullet = bullets[bulletIndex];
       for (let shipIndex = 0; shipIndex < ships.length; shipIndex++) {
         const ship = ships[shipIndex];
-        if (bullet.x < ship.positionX + ship.width &&
-          bullet.x + bullet.width > ship.positionX &&
-          bullet.y < ship.positionY + ship.height &&
-          bullet.y + bullet.height > ship.positionY) {
+        const iw = ship.width / 1.7; // inneres Rechteck, das als Trefferzone gilt
+        const ih = ship.height / 1.7;
+        const innerLeft = ship.positionX + (ship.width - iw) / 2;
+        const innerTop = ship.positionY + (ship.height - ih) / 2;
+        const innerRight = innerLeft + iw;
+        const innerBottom = innerTop + ih;        
+        if (bullet.x > innerLeft && bullet.x < innerRight && bullet.y > innerTop && bullet.y < innerBottom) {
           hits.push({ bulletIndex, shipIndex });
           console.log('Treffer gefunden:', bulletIndex, shipIndex);
           // console.log('bullet.x:', bullet.x);
