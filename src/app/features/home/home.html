@@ -9,10 +9,20 @@
     <div class="space-canvas">
       <!-- tabindex="0" um das Canvas fokussierbar zu machen -->
       <canvas #spaceCanvas tabindex="0"></canvas>
-      @if ( showStageIntro ) {
+      @if ( game.gameState === GameState.Intro ) {
         <div class="stage-intro-overlay">
-          <p class="stage-intro-text">{{ introText }}</p>
+          <p class="stage-intro-text">{{ game.currentStage.name }}</p>
           <p class="stage-intro-info">Get ready Player!</p>
+        </div>
+      }
+      @if ( game.gameState === GameState.NextStage ) {
+        <div class="stage-intro-overlay">
+          <p class="stage-intro-info">Next Stage!</p>
+        </div>
+      }
+      @if ( game.gameState === GameState.Finished ) {
+        <div class="stage-intro-overlay">
+          <p class="stage-intro-info">You have finished the game!</p>
         </div>
       }
     </div>

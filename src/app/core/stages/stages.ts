@@ -22,6 +22,12 @@ export interface Stage {
     bullets: Bullet[];
 
     /**
+     * Liefert den aktuellen Spielstand.
+     * @returns Der aktuellen Spielstand.
+     */
+    getGame(): Game;
+
+    /**
      * Initialisiert die Stage. Dazu zählt das zeichnen
      * des Hintergrunds, der Sterne, der Raumschiffe usw. .
      * @param canvasWidth - Die Breite des Canvas.

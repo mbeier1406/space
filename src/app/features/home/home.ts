@@ -5,8 +5,7 @@ import { debounceTime } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 import { Stage } from '../../core/stages/stages';
-import { Stage1 } from '../../core/stages/stage1';
-import { game, Game, GameState, stages } from '../../core/models/game';
+import { game, Game, GameState, stages, resetGame } from '../../core/models/game';
 
 /**
  * Home-Komponente für das Space-Spiel.
@@ -34,9 +33,9 @@ export class Home {
   private rafId: number | null = null; // Letzte Frame-ID für requestAnimationFrame, für Spielstopp
   private boundKeyDown = (event: KeyboardEvent) => this.handleKeyDown(event);
 
+  protected game: Game = game; // Für die Nutzung im Template
+  protected GameState = GameState; // Für die Nutzung im Template
   private stage : Stage = game.currentStage;
-  protected showStageIntro: boolean = false;
-  protected introText: string = '';
 
 
   /** Initialisiert die Komponente */
@@ -64,6 +63,8 @@ export class Home {
         this.stage.setShipPosition(this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE, this.canvasRef()?.nativeElement.height ?? this.STD_CANVAS_SIZE);
         this.draw();
     });
+    resetGame();
+    this.initGame();
   }
 
   /** Setzt Canvas-Größe auf Viewport minus Rand */
@@ -96,7 +97,21 @@ export class Home {
       this.stopTick();
       game.currentStageNumber++;
       game.currentStage = stages[game.currentStageNumber];
-      // ... next stage logic ...
+      this.stage = game.currentStage;
+      if (Object.keys(stages).find(key => key === game.currentStageNumber.toString()) === undefined) {
+        game.gameState = GameState.Finished; // Es gibt keine weitere Stage
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 5000); // x Sekunden Finished-Text anzeigen
+      } else {
+        game.currentStage = stages[game.currentStageNumber];
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          game.gameState = GameState.Intro;
+          this.initGame(); // Startet die nächste Stage
+        }, 2000); // x Sekunden NextStage-Text anzeigen
+      }
     }
   };
   
@@ -129,10 +144,9 @@ export class Home {
     this.canvasRef()?.nativeElement?.focus(); // Focus vom Button, damit Leertaste=Feuern nicht das Spiel neu startet
     this.stopTick();
     this.stage.initStage(this.canvasRef()?.nativeElement.width, this.canvasRef()?.nativeElement.height, this.STD_CANVAS_SIZE);
-    this.introText = this.stage.name;
-    this.showStageIntro = true;
+    this.cdr.markForCheck();
     setTimeout(() => {
-      this.showStageIntro = false;
+      game.gameState = GameState.Running;
       this.cdr.markForCheck();
       this.startTick();
     }, 5000); // x Sekunden Intro-Text anzeigen

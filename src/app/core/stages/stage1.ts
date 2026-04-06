@@ -18,20 +18,24 @@ export class Stage1 implements Stage {
     id: number = 1;
     name: string = 'Stage 1';
     description: string = 'This is the first stage of the game.';
-    canvasWidth: number = 0;
-    canvasHeight: number = 0;
-    stdCanvasSize: number = 0;
+    protected canvasWidth: number = 0;
+    protected canvasHeight: number = 0;
+    protected stdCanvasSize: number = 0;
     collisionService: CollisionService = new CollisionService();
     stars: Star[] = [];
     ship: Ship = createShip(0, 0, '/ship.png', () => {});
     enemyShip: Ship = createShip(0, 0, '/enemy-ship.png', () => {});
-    private enemyMoveTick = 0;
-    private readonly enemyMoveEvery = 4; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
+    protected enemyMoveTick = 0;
+    protected enemyMoveEvery = 4; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
     readonly maxBullets: number = 3;
     bullets: Bullet[] = [];    
     readonly BULLET_VELOCITY_Y = 15;
     enemyBullets: Bullet[] = [];
     readonly ENEMY_BULLET_VELOCITY_Y = -15;
+
+    public getGame(): Game {
+        return game;
+    }
 
     public initStage(
         canvasWidth: number,
@@ -41,12 +45,12 @@ export class Stage1 implements Stage {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         this.stdCanvasSize = stdCanvasSize;
-        this.createShip((canvasWidth ?? stdCanvasSize) / 2 - this.ship.width / 2, (canvasHeight ?? stdCanvasSize) - this.ship.height, () => {});
+        this.createShip((canvasWidth ?? stdCanvasSize) / 5 - this.ship.width / 2, (canvasHeight ?? stdCanvasSize) - this.ship.height, () => {});
         this.createStars(this.ship.height);
         this.createEnemyShip(canvasWidth / 2 - this.ship.width / 2, 0);
         this.bullets = [];
         this.enemyBullets = [];
-        game.gameState = GameState.Running;
+        game.gameState = GameState.Intro;
     }
 
     public playStage(): Game {
