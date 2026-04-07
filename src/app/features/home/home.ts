@@ -4,7 +4,6 @@ import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
-import { Stage } from '../../core/stages/stages';
 import { game, Game, GameState, stages, resetGame } from '../../core/models/game';
 
 /**
@@ -35,7 +34,6 @@ export class Home {
 
   protected game: Game = game; // Für die Nutzung im Template
   protected GameState = GameState; // Für die Nutzung im Template
-  private stage : Stage = game.currentStage;
 
 
   /** Initialisiert die Komponente */
@@ -53,18 +51,16 @@ export class Home {
 
   /** Initialisiert das Raumschiff und die Sterne und startet das Spiel */
   protected ngAfterViewInit(): void {
+    resetGame();
     this.setCanvasSize();
-    this.stage.initStage(this.canvasRef()?.nativeElement.width, this.canvasRef()?.nativeElement.height, this.STD_CANVAS_SIZE);
-    this.draw();
     fromEvent(this.win, 'resize')
       .pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.setCanvasSize();
-        this.stage.setShipPosition(this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE, this.canvasRef()?.nativeElement.height ?? this.STD_CANVAS_SIZE);
+        this.game.currentStage.setShipPosition(this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE, this.canvasRef()?.nativeElement.height ?? this.STD_CANVAS_SIZE);
         this.draw();
     });
-    resetGame();
-    this.initGame();
+    this.initStage();
   }
 
   /** Setzt Canvas-Größe auf Viewport minus Rand */
@@ -84,24 +80,25 @@ export class Home {
 
   /** Führt die Spielschleife aus */
   private gameLoop = (): void => {
-    const game: Game = this.stage.playStage() as Game;
-    if ( game.gameState === GameState.Running ) {
+    this.game.currentStage.playStage() as Game;
+    if ( this.game.gameState === GameState.Running ) {
       this.draw();
       this.rafId = requestAnimationFrame(this.gameLoop);
     }
-    if ( game.gameState === GameState.GameOver ) {
+    if ( this.game.gameState === GameState.GameOver ) {
       this.stopTick();
       // this.router.navigate(['/game-over']);
     }
-    if ( game.gameState === GameState.NextStage ) {
+    if ( this.game.gameState === GameState.NextStage ) {
       this.stopTick();
       game.currentStageNumber++;
       game.currentStage = stages[game.currentStageNumber];
-      this.stage = game.currentStage;
+      this.game.currentStage = game.currentStage;
       if (Object.keys(stages).find(key => key === game.currentStageNumber.toString()) === undefined) {
         game.gameState = GameState.Finished; // Es gibt keine weitere Stage
         this.cdr.markForCheck();
         setTimeout(() => {
+          game.gameState = GameState.Reset;
           this.router.navigate(['/']);
         }, 5000); // x Sekunden Finished-Text anzeigen
       } else {
@@ -109,7 +106,7 @@ export class Home {
         this.cdr.markForCheck();
         setTimeout(() => {
           game.gameState = GameState.Intro;
-          this.initGame(); // Startet die nächste Stage
+          this.initStage(); // Startet die nächste Stage
         }, 2000); // x Sekunden NextStage-Text anzeigen
       }
     }
@@ -121,32 +118,33 @@ export class Home {
     if (!ctx) return;
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    this.stage.drawStars(ctx);
-    this.stage.drawShip(ctx);
-    this.stage.drawEnemyShips(ctx);
-    this.stage.drawBullets(ctx);
-    this.stage.drawEnemyBullets(ctx);
+    this.game.currentStage.drawStars(ctx);
+    this.game.currentStage.drawShip(ctx);
+    this.game.currentStage.drawEnemyShips(ctx);
+    this.game.currentStage.drawBullets(ctx);
+    this.game.currentStage.drawEnemyBullets(ctx);
   }
 
   /** Bewegt das Schiff nach rechts/links über die Pfeiltasten-Eingaben des Benutzers */
   private handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault(); // Verhindert das Scrollen der Seite beim Drücken der Pfeiltasten
-      this.stage.moveShip(this.stage.getShip(), event.key as 'ArrowRight' | 'ArrowLeft', this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE);
+      this.game.currentStage.moveShip(this.game.currentStage.getShip(), event.key as 'ArrowRight' | 'ArrowLeft', this.canvasRef()?.nativeElement.width ?? this.STD_CANVAS_SIZE);
     }
     if (event.key === 'Space' || event.key === ' ') {
-      this.stage.createBullet();
+      this.game.currentStage.createBullet();
     }
   }
 
-  /** Initialisiert das Spiel */
-  protected initGame(): void {
+  /** Initialisiert die aktuelle Stage */
+  protected initStage(): void {
     this.canvasRef()?.nativeElement?.focus(); // Focus vom Button, damit Leertaste=Feuern nicht das Spiel neu startet
     this.stopTick();
-    this.stage.initStage(this.canvasRef()?.nativeElement.width, this.canvasRef()?.nativeElement.height, this.STD_CANVAS_SIZE);
+    this.game.currentStage.initStage(this.canvasRef()?.nativeElement.width, this.canvasRef()?.nativeElement.height, this.STD_CANVAS_SIZE);
+    this.draw();
     this.cdr.markForCheck();
     setTimeout(() => {
-      game.gameState = GameState.Running;
+      this.game.gameState = GameState.Running;
       this.cdr.markForCheck();
       this.startTick();
     }, 5000); // x Sekunden Intro-Text anzeigen
@@ -156,8 +154,8 @@ export class Home {
   protected startTick(): void {
     this.stopTick();
     this.worker = new Worker(new URL('../../core/worker/space-worker', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (event: MessageEvent) => this.stage.getBullets = event.data.bullets;    
-    this.tickInterval = setInterval(() => this.worker?.postMessage({ type: 'tick', bullets: this.stage.getBullets() }), 250);
+    this.worker.onmessage = (event: MessageEvent) => this.game.currentStage.getBullets = event.data.bullets;    
+    this.tickInterval = setInterval(() => this.worker?.postMessage({ type: 'tick', bullets: this.game.currentStage.getBullets() }), 250);
     this.doc.addEventListener('keydown', this.boundKeyDown);
     this.rafId = requestAnimationFrame(this.gameLoop);
     console.log('started');

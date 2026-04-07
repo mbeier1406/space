@@ -23,6 +23,7 @@ export interface Game {
  * Zustand des Spiels
  */
 export enum GameState {
+    Reset = 'RESET', // Spiel wird zurückgesetzt
     Intro = 'INTRO', // Stage startet, Spieler sieht den Intro-Text
     Running = 'RUNNING',
     GameOver = 'GAME_OVER', // Spieler verliert
