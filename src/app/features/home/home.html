@@ -25,5 +25,10 @@
           <p class="stage-intro-info">You have finished the game!</p>
         </div>
       }
+      @if ( game.gameState === GameState.GameOver ) {
+        <div class="stage-intro-overlay">
+          <p class="stage-intro-text">Game Over!</p>
+        </div>
+      }
     </div>
 </div>

@@ -13,6 +13,7 @@ import { Game, game } from "../models/game";
  * });
  */
 export interface Stage {
+    stageState: StageState;
     id: number;
     name: string;
     description: string;
@@ -128,3 +129,11 @@ export interface Stage {
     drawEnemyBullets(ctx: CanvasRenderingContext2D): void;
 
 }
+
+/** Zustand der Stage */
+enum StageState {
+    Running = 'RUNNING', // Stage läuft
+    EnemyShipsDead = 'ENEMY_SHIPS_DEAD', // Spieler hat gewonnen, aber es sind noch Kugeln im Spiel
+    PlayerShipDead = 'PLAYER_SHIP_DEAD' // Spieler hat verloren, aber es sind noch Kugeln im Spiel
+}
+export { StageState };

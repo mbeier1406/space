@@ -1,7 +1,7 @@
 import Star, { createStars, drawStars } from "../models/star";
-import Ship, { createShip, drawShip, moveShip, repositionShip } from "../models/ship";
+import Ship, { createShip, drawShip, moveShip, repositionShip, ShipState } from "../models/ship";
 import Bullet, { BULLET_HEIGHT, BULLET_WIDTH, createBullet, drawBullets, moveBullets } from "../models/bullet";
-import { Stage } from "./stages";
+import { Stage, StageState } from "./stages";
 import { createPoint2D, type Point2D } from "../../shared/point2d";
 import { game, Game, GameState } from "../models/game";
 import { CollisionService } from "../services/collision.service";
@@ -15,6 +15,7 @@ import { CollisionService } from "../services/collision.service";
  * stage1.createShip(100, 100, () => { console.log('Bild geladen'); });
  */
 export class Stage1 implements Stage {
+    stageState: StageState = StageState.Running;
     id: number = 1;
     name: string = 'Stage 1';
     description: string = 'This is the first stage of the game.';
@@ -42,6 +43,7 @@ export class Stage1 implements Stage {
         canvasHeight: number,
         stdCanvasSize: number
     ): void {
+        this.stageState = StageState.Running;
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         this.stdCanvasSize = stdCanvasSize;
@@ -59,8 +61,13 @@ export class Stage1 implements Stage {
         this.createEnemyBullets();
         this.moveEnemyBullets();
         const hits = this.collisionService.findHits([... this.bullets, ... this.enemyBullets], [this.ship, this.enemyShip]);
-        if (hits) {
-            game.gameState = hits[0].shipIndex === 0 ? GameState.GameOver : GameState.NextStage;
+        if (hits && this.stageState === StageState.Running) {
+            this.stageState = hits[0].shipIndex === 0 ? StageState.PlayerShipDead : StageState.EnemyShipsDead;
+        }
+        if (this.stageState === StageState.PlayerShipDead && this.bullets.length === 0) {
+            game.gameState = GameState.GameOver;
+        } else if (this.stageState === StageState.EnemyShipsDead && this.enemyBullets.length === 0) {
+            game.gameState = GameState.NextStage;
         }
         return game;
     }
@@ -102,10 +109,12 @@ export class Stage1 implements Stage {
 
 
     public moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft'): void {
+        if (ship.state === ShipState.Dead) return;
         moveShip(ship, direction, 10, this.canvasWidth);
     }
 
     public createBullet(): void {
+        if (this.ship.state === ShipState.Dead) return;
         const positionX = this.ship.positionX + this.ship.width / 2 - BULLET_WIDTH / 2;
         const positionY = this.ship.positionY - BULLET_HEIGHT-1;
         if (this.bullets.length < this.maxBullets) {
@@ -138,6 +147,7 @@ export class Stage1 implements Stage {
     }
 
     public moveEnemyShip(): void {
+        if (this.enemyShip.state === ShipState.Dead) return;
         this.enemyMoveTick++;
         if (this.enemyMoveTick % this.enemyMoveEvery !== 0) {
             return; // diesen Aufruf auslassen, weil es nicht die Zeit ist
@@ -151,6 +161,7 @@ export class Stage1 implements Stage {
     }
 
     public createEnemyBullets(): void {
+        if (this.enemyShip.state === ShipState.Dead) return;
         if ( Math.random() < 0.9) return;
         const positionX = this.enemyShip.positionX + this.enemyShip.width / 2 - BULLET_WIDTH / 2;
         const positionY = this.enemyShip.positionY + this.enemyShip.height;

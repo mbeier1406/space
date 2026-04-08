@@ -87,7 +87,11 @@ export class Home {
     }
     if ( this.game.gameState === GameState.GameOver ) {
       this.stopTick();
-      // this.router.navigate(['/game-over']);
+      game.gameState = GameState.GameOver;
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.router.navigate(['/']);
+      }, 5000); // x Sekunden GameOver-Text anzeigen
     }
     if ( this.game.gameState === GameState.NextStage ) {
       this.stopTick();

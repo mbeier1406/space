@@ -1,5 +1,13 @@
+
+/** Zustand des Raumschiffs */
+export enum ShipState {
+    Alive = 'ALIVE',
+    Dead = 'DEAD',
+}
+
 /** Interface für das Raumschiff */
 interface Ship {
+    state : ShipState;
     positionX : number;
     positionY : number;
     lastPositionX : number;
@@ -33,12 +41,13 @@ export function createShip(
     image.onload = onImageLoaded;
     image.src = img;
     return {
-      positionX,
-      positionY,
-      lastPositionX: positionX,
-      image,
-      width: SHIP_WIDTH,
-      height: SHIP_HEIGHT,
+        state: ShipState.Alive,
+        positionX,
+        positionY,
+        lastPositionX: positionX,
+        image: image,
+        width: SHIP_WIDTH,
+        height: SHIP_HEIGHT,
     };
 }
 
