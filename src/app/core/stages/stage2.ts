@@ -1,5 +1,5 @@
 import { Stage1 } from "./stage1";
-import { moveShip } from "../models/ship";
+import { moveShip, ShipState } from "../models/ship";
 
 export class Stage2 extends Stage1 {
 
@@ -9,6 +9,7 @@ export class Stage2 extends Stage1 {
     override enemyMoveEvery: number = 3; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
 
     public override moveEnemyShip(): void {
+        if (this.enemyShip.state !== ShipState.Alive) return;
         this.enemyMoveTick++;
         if (this.enemyMoveTick % this.enemyMoveEvery !== 0) {
             return; // diesen Aufruf auslassen, weil es nicht die Zeit ist

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import Bullet from '../models/bullet';
-import Ship, { ShipState } from '../models/ship';
+import Ship, { ShipState, startExplosion } from '../models/ship';
 
 /**
  * Interface für eine Kollision zwischen einer Bullet und einem Schiff.
@@ -35,6 +35,7 @@ export class CollisionService {
       const bullet = bullets[bulletIndex];
       for (let shipIndex = 0; shipIndex < ships.length; shipIndex++) {
         const ship = ships[shipIndex];
+        if (ship.state !== ShipState.Alive) continue; // Nur lebende Schiffe können getroffen werden
         const iw = ship.width / 1.7; // inneres Rechteck, das als Trefferzone gilt
         const ih = ship.height / 1.7;
         const innerLeft = ship.positionX + (ship.width - iw) / 2;
@@ -43,7 +44,7 @@ export class CollisionService {
         const innerBottom = innerTop + ih;        
         if (bullet.x > innerLeft && bullet.x < innerRight && bullet.y > innerTop && bullet.y < innerBottom) {
           hits.push({ bulletIndex, shipIndex });
-          ship.state = ShipState.Dead;
+          startExplosion(ship);
           console.log('Treffer gefunden:', bulletIndex, shipIndex);
           // console.log('bullet.x:', bullet.x);
           // console.log('ship.positionX + ship.width:', ship.positionX + ship.width);

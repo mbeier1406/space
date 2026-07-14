@@ -2,6 +2,7 @@
 /** Zustand des Raumschiffs */
 export enum ShipState {
     Alive = 'ALIVE',
+    Exploding = 'EXPLODING', // Schiff wurde getroffen, Explosionsanimation läuft
     Dead = 'DEAD',
 }
 
@@ -14,11 +15,21 @@ interface Ship {
     image : HTMLImageElement;
     readonly width : number;
     readonly height : number;
+    explosionImage : HTMLImageElement;
+    explosionFrame : number;
+    explosionFrameStartedAt : number;
 }
 export default Ship;
 
 export const SHIP_WIDTH = 56;
 export const SHIP_HEIGHT = 70;
+
+/** Anzahl der Frames im Explosions-Sprite-Sheet (horizontal angeordnet) */
+export const EXPLOSION_FRAME_COUNT = 3;
+/** Dauer eines einzelnen Explosions-Frames in Millisekunden */
+export const EXPLOSION_FRAME_DURATION_MS = 200;
+/** Skalierungsfaktor: Explosion etwas größer als das Schiff */
+export const EXPLOSION_SCALE = 1.4;
 
 /**
  * Erstellt ein neues Raumschiff und lädt das Bild
@@ -40,6 +51,8 @@ export function createShip(
     const image = new Image();
     image.onload = onImageLoaded;
     image.src = img;
+    const explosionImage = new Image();
+    explosionImage.src = img.replace('.png', '-explosion.png');
     return {
         state: ShipState.Alive,
         positionX,
@@ -48,7 +61,37 @@ export function createShip(
         image: image,
         width: SHIP_WIDTH,
         height: SHIP_HEIGHT,
+        explosionImage: explosionImage,
+        explosionFrame: 0,
+        explosionFrameStartedAt: 0,
     };
+}
+
+/**
+ * Startet die Explosionsanimation für ein Schiff.
+ * Setzt den Zustand auf Exploding und initialisiert Frame-Index/Timer.
+ * @param ship - Das Raumschiff
+ */
+export function startExplosion(ship: Ship): void {
+    ship.state = ShipState.Exploding;
+    ship.explosionFrame = 0;
+    ship.explosionFrameStartedAt = performance.now();
+}
+
+/**
+ * Schreibt die Explosionsanimation eines Schiffs voran.
+ * Wechselt nach Ablauf des letzten Frames in den Zustand Dead.
+ * @param ship - Das Raumschiff
+ */
+export function updateExplosion(ship: Ship): void {
+    if (ship.state !== ShipState.Exploding) return;
+    const now = performance.now();
+    if (now - ship.explosionFrameStartedAt < EXPLOSION_FRAME_DURATION_MS) return;
+    ship.explosionFrame++;
+    ship.explosionFrameStartedAt = now;
+    if (ship.explosionFrame >= EXPLOSION_FRAME_COUNT) {
+        ship.state = ShipState.Dead;
+    }
 }
 
 /**
@@ -96,7 +139,27 @@ export function moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft', spee
  */
 export function drawShip(ship: Ship, ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = '#000000';
-    ctx.fillRect(ship!.lastPositionX, ship!.positionY, ship!.width, ship!.height);
-    ship!.lastPositionX = ship!.positionX;
-    ctx.drawImage(ship!.image, ship!.positionX, ship!.positionY, ship!.width, ship!.height);
+    ctx.fillRect(ship.lastPositionX, ship.positionY, ship.width, ship.height);
+    ship.lastPositionX = ship.positionX;
+
+    if (ship.state === ShipState.Alive) {
+        ctx.drawImage(ship.image, ship.positionX, ship.positionY, ship.width, ship.height);
+        return;
+    }
+
+    if (ship.state === ShipState.Exploding) {
+        const img = ship.explosionImage;
+        if (!img.complete || img.naturalWidth === 0) return;
+        const frameW = img.naturalWidth / EXPLOSION_FRAME_COUNT;
+        const frameH = img.naturalHeight;
+        const drawW = ship.width * EXPLOSION_SCALE;
+        const drawH = ship.height * EXPLOSION_SCALE;
+        const drawX = ship.positionX - (drawW - ship.width) / 2;
+        const drawY = ship.positionY - (drawH - ship.height) / 2;
+        ctx.drawImage(
+            img,
+            ship.explosionFrame * frameW, 0, frameW, frameH,
+            drawX, drawY, drawW, drawH
+        );
+    }
 }

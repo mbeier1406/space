@@ -1,5 +1,5 @@
 import Star, { createStars, drawStars } from "../models/star";
-import Ship, { createShip, drawShip, moveShip, repositionShip, ShipState } from "../models/ship";
+import Ship, { createShip, drawShip, moveShip, repositionShip, ShipState, updateExplosion } from "../models/ship";
 import Bullet, { BULLET_HEIGHT, BULLET_WIDTH, createBullet, drawBullets, moveBullets } from "../models/bullet";
 import { Stage, StageState } from "./stages";
 import { createPoint2D, type Point2D } from "../../shared/point2d";
@@ -60,13 +60,15 @@ export class Stage1 implements Stage {
         this.moveEnemyShip();
         this.createEnemyBullets();
         this.moveEnemyBullets();
+        updateExplosion(this.ship);
+        updateExplosion(this.enemyShip);
         const hits = this.collisionService.findHits([... this.bullets, ... this.enemyBullets], [this.ship, this.enemyShip]);
         if (hits && this.stageState === StageState.Running) {
             this.stageState = hits[0].shipIndex === 0 ? StageState.PlayerShipDead : StageState.EnemyShipsDead;
         }
-        if (this.stageState === StageState.PlayerShipDead && this.bullets.length === 0) {
+        if (this.stageState === StageState.PlayerShipDead && this.bullets.length === 0 && this.ship.state === ShipState.Dead) {
             game.gameState = GameState.GameOver;
-        } else if (this.stageState === StageState.EnemyShipsDead && this.enemyBullets.length === 0) {
+        } else if (this.stageState === StageState.EnemyShipsDead && this.enemyBullets.length === 0 && this.enemyShip.state === ShipState.Dead) {
             game.gameState = GameState.NextStage;
         }
         return game;
@@ -109,12 +111,12 @@ export class Stage1 implements Stage {
 
 
     public moveShip(ship: Ship, direction: 'ArrowRight' | 'ArrowLeft'): void {
-        if (ship.state === ShipState.Dead) return;
+        if (ship.state !== ShipState.Alive) return;
         moveShip(ship, direction, 10, this.canvasWidth);
     }
 
     public createBullet(): void {
-        if (this.ship.state === ShipState.Dead) return;
+        if (this.ship.state !== ShipState.Alive) return;
         const positionX = this.ship.positionX + this.ship.width / 2 - BULLET_WIDTH / 2;
         const positionY = this.ship.positionY - BULLET_HEIGHT-1;
         if (this.bullets.length < this.maxBullets) {
@@ -147,7 +149,7 @@ export class Stage1 implements Stage {
     }
 
     public moveEnemyShip(): void {
-        if (this.enemyShip.state === ShipState.Dead) return;
+        if (this.enemyShip.state !== ShipState.Alive) return;
         this.enemyMoveTick++;
         if (this.enemyMoveTick % this.enemyMoveEvery !== 0) {
             return; // diesen Aufruf auslassen, weil es nicht die Zeit ist
@@ -161,7 +163,7 @@ export class Stage1 implements Stage {
     }
 
     public createEnemyBullets(): void {
-        if (this.enemyShip.state === ShipState.Dead) return;
+        if (this.enemyShip.state !== ShipState.Alive) return;
         if ( Math.random() < 0.9) return;
         const positionX = this.enemyShip.positionX + this.enemyShip.width / 2 - BULLET_WIDTH / 2;
         const positionY = this.enemyShip.positionY + this.enemyShip.height;

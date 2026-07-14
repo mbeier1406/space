@@ -9,7 +9,7 @@ registerLocaleData(localeDe);
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
+    provideBrowserGlobalErrorListeners(), // Browser-Fehler einfangen (sonst nur Konsole)
     provideRouter(routes)
   ]
 };
