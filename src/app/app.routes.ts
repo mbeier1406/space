@@ -12,8 +12,12 @@ const routes: Routes = [
     path: 'game',
     component: Home,
     title: 'Space'
-  }
+  },
+  {
+    path: '**',
+    redirectTo: '',
+    pathMatch: 'full',
+  },
 ];
 
 export default routes;
-

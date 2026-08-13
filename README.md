@@ -66,6 +66,32 @@ $ ng serve
 # Das Spiel läuft dann auf: http://localhost:4200
 ```
 
+## Angular Version 22
+
+Aktualisierung <b>node.js</b>
+
+```
+$ nvm install 24
+Downloading and installing node v24.19.0...
+Downloading https://nodejs.org/dist/v24.19.0/node-v24.19.0-linux-x64.tar.xz...
+#################################################################################################### 100.0%
+Computing checksum with sha256sum
+Checksums matched!
+Now using node v24.19.0 (npm v11.17.0)
+$ nvm alias default 24
+default -> 24 (-> v24.19.0)
+$ nvm use 24
+Now using node v24.19.0 (npm v11.17.0)
+$ node -v
+v24.19.0
+$ npx ng update @angular/core@^22 @angular/cli@^22
+# Damit ng wieder global geht (analog source <(ng completion script) in der .bashrc):
+$ npm install -g @angular/cli
+# Im Projektordner:
+$ ng update @angular/core@^22 @angular/cli@^22
+```
+
+
 ## Projekt bauen
 
 Um das Projekt zu bauen, ist auszuführen:
