@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 
 /**
@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
   selector: 'app-start',
   imports: [],
   templateUrl: './start.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './start.css',
 })
 export class Start {

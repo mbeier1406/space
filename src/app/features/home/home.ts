@@ -1,4 +1,4 @@
-import { Component, DestroyRef, DOCUMENT, ElementRef, inject, Signal, viewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, DestroyRef, DOCUMENT, ElementRef, inject, Signal, viewChild, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -16,6 +16,7 @@ import { game, Game, GameState, stages, resetGame } from '../../core/models/game
   selector: 'app-home',
   imports: [],
   templateUrl: './home.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './home.css',
 })
 export class Home {
