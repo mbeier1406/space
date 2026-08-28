@@ -84,6 +84,9 @@ $ nvm use 24
 Now using node v24.19.0 (npm v11.17.0)
 $ node -v
 v24.19.0
+$  nvm uninstall 24.12.0
+Uninstalled node v24.12.0
+# npx ng findet die CLI, weil npm @angular/cli aus devDependencies (package.json) nach node_modules/.bin/ng gelegt hat.
 $ npx ng update @angular/core@^22 @angular/cli@^22
 # Damit ng wieder global geht (analog source <(ng completion script) in der .bashrc):
 $ npm install -g @angular/cli
