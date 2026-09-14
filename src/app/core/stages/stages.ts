@@ -128,6 +128,13 @@ export interface Stage {
      */
     drawEnemyBullets(ctx: CanvasRenderingContext2D): void;
 
+    /**
+     * Zeichnet die Hindernisse auf den Canvas.
+     * @param ctx - Der CanvasRenderingContext2D.
+     * @returns void
+     */
+    drawBlocks(ctx: CanvasRenderingContext2D): void;
+
 }
 
 /** Zustand der Stage */

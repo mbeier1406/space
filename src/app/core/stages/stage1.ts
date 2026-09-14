@@ -180,4 +180,7 @@ export class Stage1 implements Stage {
         this.enemyBullets = moveBullets(this.enemyBullets, this.canvasHeight);
     }
 
+    public drawBlocks(ctx: CanvasRenderingContext2D): void {
+    }
+
 }

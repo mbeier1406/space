@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import Bullet from '../models/bullet';
+import Block from '../models/block';
 import Ship, { ShipState, startExplosion } from '../models/ship';
 
 /**
@@ -13,6 +14,11 @@ import Ship, { ShipState, startExplosion } from '../models/ship';
 export interface CollisionHit {
   bulletIndex: number;
   shipIndex: number;
+}
+
+export interface BlockHit {
+  bulletIndex: number;
+  blockIndex: number;
 }
 
 @Injectable({
@@ -58,6 +64,32 @@ export class CollisionService {
       }
     }
     return hits.length > 0 ? hits : undefined;
+  }
+
+  /**
+   * Findet alle Treffer zwischen den Bullets und den Blöcken.
+   * @param bullets - Die Bullets.
+   * @param blocks - Die Blöcke.
+   * @returns Die Treffer.
+   * @example
+   * const hits = findBlockHits(bullets, blocks);
+   */
+  public findBlockHits(bullets: Bullet[], blocks: Block[]): BlockHit[] {
+    const hits: BlockHit[] = [];
+    for (let bi = 0; bi < bullets.length; bi++) {
+        const b = bullets[bi];
+        for (let ki = 0; ki < blocks.length; ki++) {
+            const k = blocks[ki];
+            if (k.hitsLeft <= 0) continue;
+            const overlaps =
+                b.x < k.x + k.width &&
+                b.x + b.width > k.x &&
+                b.y < k.y + k.height &&
+                b.y + b.height > k.y;
+            if (overlaps) hits.push({ bulletIndex: bi, blockIndex: ki });
+        }
+    }
+    return hits;
   }
 
 }

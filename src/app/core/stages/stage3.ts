@@ -1,3 +1,4 @@
+import { Block, createBlock, drawBlocks } from "../models/block";
 import { BULLET_WIDTH, createBullet } from "../models/bullet";
 import { Game, game, GameState } from "../models/game";
 import Ship, { createShip, drawShip, moveShip, SHIP_WIDTH, ShipState, updateExplosion } from "../models/ship";
@@ -8,9 +9,10 @@ export class Stage3 extends Stage1 {
     override id: number = 3;
     override name: string = 'Stage 3';
     override description: string = 'Zwei gegnerische Schiffe.';
-    override enemyMoveEvery: number = 3; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
+    override enemyMoveEvery: number = 2; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
 
     enemyShips: Ship[] = [];
+    blocks: Block[] = [];
 
     override initStage(canvasWidth: number, canvasHeight: number, stdCanvasSize: number): void {
         this.stageState = StageState.Running;
@@ -28,16 +30,42 @@ export class Stage3 extends Stage1 {
         this.enemyShip = this.enemyShips[0]; // Kompatibilität mit Basisklasse
         this.bullets = [];
         this.enemyBullets = [];
+
+        const blockW = 80;
+        const blockH = 20;
+        const midY = canvasHeight / 2 - blockH / 2;        
+        this.blocks = [
+            createBlock(canvasWidth / 3 - blockW / 2, midY, blockW, blockH),
+            createBlock(canvasWidth / 2 - blockW / 2, midY, blockW, blockH),
+            createBlock((2 * canvasWidth / 3) - blockW / 2, midY, blockW, blockH),
+        ];
+
         game.gameState = GameState.Intro;
     }
 
     override playStage(): Game {
+
         this.moveBullets();
         this.moveEnemyShips();
         this.createEnemyBullets();
         this.moveEnemyBullets();
         updateExplosion(this.ship);
         this.enemyShips.forEach(s => updateExplosion(s));
+
+        const bulletGroups = [this.bullets, this.enemyBullets];
+        for (let i = 0; i < bulletGroups.length; i++) {
+            const hits = this.collisionService.findBlockHits(bulletGroups[i], this.blocks);
+            const remove = new Set<number>();        
+            for (const hit of hits) {
+                this.blocks[hit.blockIndex].hitsLeft--;
+                remove.add(hit.bulletIndex);
+            }
+            bulletGroups[i] = bulletGroups[i].filter((_, index) => !remove.has(index));
+        }        
+        this.bullets = bulletGroups[0];
+        this.enemyBullets = bulletGroups[1];
+        this.blocks = this.blocks.filter(b => b.hitsLeft > 0);
+
         const hits = this.collisionService.findHits(
             [...this.bullets, ...this.enemyBullets],
             [this.ship, ...this.enemyShips]
@@ -47,10 +75,11 @@ export class Stage3 extends Stage1 {
                 this.stageState = StageState.PlayerShipDead;
             }
         }
-        if (this.stageState === StageState.Running
-            && this.enemyShips.every(s => s.state !== ShipState.Alive)) {
+
+        if (this.stageState === StageState.Running && this.enemyShips.every(s => s.state !== ShipState.Alive)) {
             this.stageState = StageState.EnemyShipsDead;
         }
+
         // Endgame-Prüfung
         if (this.stageState === StageState.PlayerShipDead && this.ship.state === ShipState.Dead && this.bullets.length === 0) {
             game.gameState = GameState.GameOver;
@@ -90,10 +119,14 @@ export class Stage3 extends Stage1 {
             if ( Math.random() < 0.9) return;
             const positionX = s.positionX + s.width / 2 - BULLET_WIDTH / 2;
             const positionY = s.positionY + s.height;
-            if (this.enemyBullets.length < 10) {
+            if (this.enemyBullets.length < 15) {
                 this.enemyBullets.push(createBullet(positionX, positionY, this.ENEMY_BULLET_VELOCITY_Y));
             }
         });
+    }
+
+    override drawBlocks(ctx: CanvasRenderingContext2D): void {
+        drawBlocks(this.blocks, ctx);
     }
 
 }
