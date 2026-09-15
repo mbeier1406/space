@@ -1,5 +1,5 @@
 import Star, { createStars, drawStars } from "../models/star";
-import Ship, { createShip, drawShip, moveShip, repositionShip, ShipState, updateExplosion } from "../models/ship";
+import Ship, { SHIP_HEIGHT, SHIP_WIDTH, createShip, drawShip, moveShip, repositionShip, ShipState, updateExplosion } from "../models/ship";
 import Bullet, { BULLET_HEIGHT, BULLET_WIDTH, createBullet, drawBullets, moveBullets } from "../models/bullet";
 import { Stage, StageState } from "./stages";
 import { createPoint2D, type Point2D } from "../../shared/point2d";
@@ -24,8 +24,8 @@ export class Stage1 implements Stage {
     protected stdCanvasSize: number = 0;
     collisionService: CollisionService = new CollisionService();
     stars: Star[] = [];
-    ship: Ship = createShip(0, 0, '/ship.png', () => {});
-    enemyShip: Ship = createShip(0, 0, '/enemy-ship.png', () => {});
+    ship!: Ship;
+    enemyShip!: Ship;
     protected enemyMoveTick = 0;
     protected enemyMoveEvery = 4; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
     readonly maxBullets: number = 3;
@@ -47,9 +47,9 @@ export class Stage1 implements Stage {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         this.stdCanvasSize = stdCanvasSize;
-        this.createShip((canvasWidth ?? stdCanvasSize) / 5 - this.ship.width / 2, (canvasHeight ?? stdCanvasSize) - this.ship.height, () => {});
-        this.createStars(this.ship.height);
-        this.createEnemyShip(canvasWidth / 2 - this.ship.width / 2, 0);
+        this.createShip((canvasWidth ?? stdCanvasSize) / 5 - SHIP_WIDTH / 2, (canvasHeight ?? stdCanvasSize) - SHIP_HEIGHT, () => {});
+        this.createStars(SHIP_HEIGHT);
+        this.createEnemyShip(canvasWidth / 2 - SHIP_WIDTH / 2, 0);
         this.bullets = [];
         this.enemyBullets = [];
         game.gameState = GameState.Intro;
