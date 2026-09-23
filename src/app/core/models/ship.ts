@@ -16,8 +16,12 @@ interface Ship {
     readonly width : number;
     readonly height : number;
     explosionImage : HTMLImageElement;
+    hitImage? : HTMLImageElement;
+    hitFrame? : number;
+    hitFrameStartedAt? : number;
     explosionFrame : number;
     explosionFrameStartedAt : number;
+    hitsLeft : number;
 }
 export default Ship;
 
@@ -30,6 +34,8 @@ export const EXPLOSION_FRAME_COUNT = 3;
 export const EXPLOSION_FRAME_DURATION_MS = 200;
 /** Skalierungsfaktor: Explosion etwas größer als das Schiff */
 export const EXPLOSION_SCALE = 1.4;
+/** Skalierungsfaktor: Hit-Ring braucht Platz um das Schiff */
+export const HIT_SCALE = 2.0;
 
 /**
  * Erstellt ein neues Raumschiff und lädt das Bild
@@ -46,14 +52,20 @@ export function createShip(
     positionX: number,
     positionY: number,
     img: string,
-    onImageLoaded: () => void
+    onImageLoaded: () => void,
+    hitsLeft: number = 1
   ): Ship {
     const image = new Image();
     image.onload = onImageLoaded;
     image.src = img;
     const explosionImage = new Image();
     explosionImage.src = img.replace('.png', '-explosion.png');
-    return {
+    let hitImage : HTMLImageElement | undefined = undefined;
+    if (hitsLeft > 1) {
+        hitImage = new Image();
+        hitImage.src = img.replace('.png', '-hit.png');
+    }
+    const ship : Ship = {
         state: ShipState.Alive,
         positionX,
         positionY,
@@ -64,7 +76,12 @@ export function createShip(
         explosionImage: explosionImage,
         explosionFrame: 0,
         explosionFrameStartedAt: 0,
+        hitsLeft,
+        hitImage: hitImage,
+        hitFrame: 0,
+        hitFrameStartedAt: 0
     };
+    return ship;
 }
 
 /**
@@ -91,6 +108,28 @@ export function updateExplosion(ship: Ship): void {
     ship.explosionFrameStartedAt = now;
     if (ship.explosionFrame >= EXPLOSION_FRAME_COUNT) {
         ship.state = ShipState.Dead;
+    }
+}
+
+export function startHitAnimation(ship: Ship): void {
+    if (!ship.hitImage) return;
+    ship.hitFrame = 0;
+    ship.hitFrameStartedAt = performance.now();
+}
+
+/**
+ * Schreibt die Hit-Animation eines Schiffs voran.
+ * Nach dem letzten Frame bleibt das Schiff Alive, die Animation endet.
+ */
+export function updateHitAnimation(ship: Ship): void {
+    if (!ship.hitImage || ship.hitFrameStartedAt === undefined || ship.hitFrameStartedAt === 0) return;
+    const now = performance.now();
+    if (now - ship.hitFrameStartedAt < EXPLOSION_FRAME_DURATION_MS) return;
+    ship.hitFrame = (ship.hitFrame ?? 0) + 1;
+    ship.hitFrameStartedAt = now;
+    if (ship.hitFrame >= EXPLOSION_FRAME_COUNT) {
+        ship.hitFrame = 0;
+        ship.hitFrameStartedAt = 0;
     }
 }
 
@@ -143,6 +182,26 @@ export function drawShip(ship: Ship, ctx: CanvasRenderingContext2D): void {
     ship.lastPositionX = ship.positionX;
 
     if (ship.state === ShipState.Alive) {
+        const hitActive = !!ship.hitImage && !!ship.hitFrameStartedAt;
+        if (hitActive) {
+            const img = ship.hitImage!;
+            if (!img.complete || img.naturalWidth === 0) {
+                ctx.drawImage(ship.image, ship.positionX, ship.positionY, ship.width, ship.height);
+                return;
+            }
+            const frameW = img.naturalWidth / EXPLOSION_FRAME_COUNT;
+            const frameH = img.naturalHeight;
+            const drawW = ship.width * HIT_SCALE;
+            const drawH = ship.height * HIT_SCALE;
+            const drawX = ship.positionX - (drawW - ship.width) / 2;
+            const drawY = ship.positionY - (drawH - ship.height) / 2;
+            ctx.drawImage(
+                img,
+                (ship.hitFrame ?? 0) * frameW, 0, frameW, frameH,
+                drawX, drawY, drawW, drawH
+            );
+            return;
+        }
         ctx.drawImage(ship.image, ship.positionX, ship.positionY, ship.width, ship.height);
         return;
     }

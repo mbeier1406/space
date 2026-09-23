@@ -1,7 +1,7 @@
 import { Block, createBlock, drawBlocks } from "../models/block";
 import { BULLET_WIDTH, createBullet } from "../models/bullet";
 import { Game, game, GameState } from "../models/game";
-import Ship, { createShip, drawShip, moveShip, SHIP_WIDTH, ShipState, updateExplosion } from "../models/ship";
+import Ship, { createShip, drawShip, moveShip, SHIP_HEIGHT, SHIP_WIDTH, ShipState, updateExplosion, updateHitAnimation } from "../models/ship";
 import { Stage1 } from "./stage1";
 import { StageState } from "./stages";
 
@@ -20,8 +20,8 @@ export class Stage3 extends Stage1 {
         this.canvasHeight = canvasHeight;
         this.stdCanvasSize = stdCanvasSize;
         // Spieler in der Mitte unten
-        this.createShip(canvasWidth / 2 - this.ship.width / 2, canvasHeight - this.ship.height, () => {});
-        this.createStars(this.ship.height);
+        this.createShip(canvasWidth / 2 - SHIP_WIDTH / 2, canvasHeight - SHIP_HEIGHT, () => {});
+        this.createStars(SHIP_HEIGHT);
         // Zwei Gegner bei 1/3 und 2/3
         this.enemyShips = [
             createShip(canvasWidth / 3 - SHIP_WIDTH / 2, 0, '/enemy-ship.png', () => {}),
@@ -51,6 +51,8 @@ export class Stage3 extends Stage1 {
         this.moveEnemyBullets();
         updateExplosion(this.ship);
         this.enemyShips.forEach(s => updateExplosion(s));
+        updateHitAnimation(this.ship);
+        this.enemyShips.forEach(s => updateHitAnimation(s));
 
         const bulletGroups = [this.bullets, this.enemyBullets];
         for (let i = 0; i < bulletGroups.length; i++) {
@@ -70,6 +72,7 @@ export class Stage3 extends Stage1 {
             [...this.bullets, ...this.enemyBullets],
             [this.ship, ...this.enemyShips]
         );
+        this.removeHitBullets(hits);
         if (hits && this.stageState === StageState.Running) {
             if (hits.some(h => h.shipIndex === 0)) {
                 this.stageState = StageState.PlayerShipDead;

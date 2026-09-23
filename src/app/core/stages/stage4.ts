@@ -9,7 +9,7 @@ export class Stage4 extends Stage1 {
     override enemyMoveEvery: number = 2; // nur bei jedem x. Aufruf das feindliche Schiff bewegen
 
     override createEnemyShip(positionX: number, positionY: number): void {
-        this.enemyShip = createShip(positionX, positionY, '/enemy-ship-2.png', () => {});
+        this.enemyShip = createShip(positionX, positionY, '/enemy-ship-2.png', () => {}, 3);
     }
 
 }

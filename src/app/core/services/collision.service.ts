@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import Bullet from '../models/bullet';
 import Block from '../models/block';
-import Ship, { ShipState, startExplosion } from '../models/ship';
+import Ship, { ShipState, startExplosion, startHitAnimation } from '../models/ship';
 
 /**
  * Interface für eine Kollision zwischen einer Bullet und einem Schiff.
@@ -49,9 +49,15 @@ export class CollisionService {
         const innerRight = innerLeft + iw;
         const innerBottom = innerTop + ih;        
         if (bullet.x > innerLeft && bullet.x < innerRight && bullet.y > innerTop && bullet.y < innerBottom) {
+          ship.hitsLeft--;
           hits.push({ bulletIndex, shipIndex });
-          startExplosion(ship);
-          console.log('Treffer gefunden:', bulletIndex, shipIndex);
+          if (ship.hitsLeft <= 0) {
+            startExplosion(ship);
+          }
+          else {
+            startHitAnimation(ship);
+          }
+          // console.log('Treffer gefunden:', bulletIndex, shipIndex);
           // console.log('bullet.x:', bullet.x);
           // console.log('ship.positionX + ship.width:', ship.positionX + ship.width);
           // console.log('bullet.x + bullet.width:', bullet.x + bullet.width);

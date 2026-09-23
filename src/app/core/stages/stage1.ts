@@ -1,10 +1,10 @@
 import Star, { createStars, drawStars } from "../models/star";
-import Ship, { SHIP_HEIGHT, SHIP_WIDTH, createShip, drawShip, moveShip, repositionShip, ShipState, updateExplosion } from "../models/ship";
+import Ship, { SHIP_HEIGHT, SHIP_WIDTH, createShip, drawShip, moveShip, repositionShip, ShipState, updateExplosion, updateHitAnimation } from "../models/ship";
 import Bullet, { BULLET_HEIGHT, BULLET_WIDTH, createBullet, drawBullets, moveBullets } from "../models/bullet";
 import { Stage, StageState } from "./stages";
 import { createPoint2D, type Point2D } from "../../shared/point2d";
 import { game, Game, GameState } from "../models/game";
-import { CollisionService } from "../services/collision.service";
+import { CollisionHit, CollisionService } from "../services/collision.service";
 
 /**
  * Stage 1 - Erste Stage des Spiels.
@@ -62,10 +62,22 @@ export class Stage1 implements Stage {
         this.moveEnemyBullets();
         updateExplosion(this.ship);
         updateExplosion(this.enemyShip);
+        updateHitAnimation(this.ship);
+        updateHitAnimation(this.enemyShip);
         const hits = this.collisionService.findHits([... this.bullets, ... this.enemyBullets], [this.ship, this.enemyShip]);
+        this.removeHitBullets(hits);
+
         if (hits && this.stageState === StageState.Running) {
-            this.stageState = hits[0].shipIndex === 0 ? StageState.PlayerShipDead : StageState.EnemyShipsDead;
+            if (hits.some(h => h.shipIndex === 0)) {
+                this.stageState = StageState.PlayerShipDead;
+            }
         }
+        
+        if (this.stageState === StageState.Running
+            && this.enemyShip.state !== ShipState.Alive) {
+            this.stageState = StageState.EnemyShipsDead;
+        }
+
         if (this.stageState === StageState.PlayerShipDead && this.bullets.length === 0 && this.ship.state === ShipState.Dead) {
             game.gameState = GameState.GameOver;
         } else if (this.stageState === StageState.EnemyShipsDead && this.enemyBullets.length === 0 && this.enemyShip.state === ShipState.Dead) {
@@ -181,6 +193,26 @@ export class Stage1 implements Stage {
     }
 
     public drawBlocks(ctx: CanvasRenderingContext2D): void {
+    }
+
+    /**
+     * Entfernt Kugeln, die ein Schiff getroffen haben.
+     * bulletIndex bezieht sich auf das kombinierte Array [Spieler, Gegner].
+     */
+    protected removeHitBullets(hits: CollisionHit[] | undefined): void {
+        if (!hits) return;
+        const playerCount = this.bullets.length;
+        const removePlayer = new Set<number>();
+        const removeEnemy = new Set<number>();
+        for (const hit of hits) {
+            if (hit.bulletIndex < playerCount) {
+                removePlayer.add(hit.bulletIndex);
+            } else {
+                removeEnemy.add(hit.bulletIndex - playerCount);
+            }
+        }
+        this.bullets = this.bullets.filter((_, i) => !removePlayer.has(i));
+        this.enemyBullets = this.enemyBullets.filter((_, i) => !removeEnemy.has(i));
     }
 
 }
