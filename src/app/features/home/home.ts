@@ -82,8 +82,8 @@ export class Home {
   /** Führt die Spielschleife aus */
   private gameLoop = (): void => {
     this.game.currentStage.playStage() as Game;
+    this.draw();
     if ( this.game.gameState === GameState.Running ) {
-      this.draw();
       this.rafId = requestAnimationFrame(this.gameLoop);
     }
     if ( this.game.gameState === GameState.GameOver ) {

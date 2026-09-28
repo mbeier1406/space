@@ -20,6 +20,7 @@ const routes: Routes = [
     title: 'Space Start'
   },
   // http://localhost:4200/game → Spiel (Home-Komponente)
+  // TODO: Hier noch authGuard einbauen
   {
     path: 'game',
     component: Home,
