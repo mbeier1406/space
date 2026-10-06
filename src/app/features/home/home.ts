@@ -5,6 +5,7 @@ import { debounceTime } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 import { game, Game, GameState, stages, resetGame } from '../../core/models/game';
+import { StageState } from '../../core/stages/stages';
 
 /**
  * Home-Komponente für das Space-Spiel.
@@ -114,6 +115,11 @@ export class Home {
           this.initStage(); // Startet die nächste Stage
         }, 2000); // x Sekunden NextStage-Text anzeigen
       }
+    }
+    if (this.game.gameState === GameState.Intro && this.game.currentStage.stageState === StageState.PlayerShipDead) {
+      this.stopTick();
+      this.cdr.markForCheck();
+      setTimeout(() => this.initStage(), 2000);
     }
   };
   

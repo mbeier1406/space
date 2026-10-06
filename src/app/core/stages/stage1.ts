@@ -79,7 +79,8 @@ export class Stage1 implements Stage {
         }
 
         if (this.stageState === StageState.PlayerShipDead && this.bullets.length === 0 && this.ship.state === ShipState.Dead) {
-            game.gameState = GameState.GameOver;
+            game.lives--;
+            game.gameState = game.lives > 0 ? GameState.Intro : GameState.GameOver;
         } else if (this.stageState === StageState.EnemyShipsDead && this.enemyBullets.length === 0 && this.enemyShip.state === ShipState.Dead) {
             game.gameState = GameState.NextStage;
         }

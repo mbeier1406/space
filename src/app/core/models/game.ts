@@ -16,11 +16,18 @@ export const stages : Record<number, Stage> = {
 
 /**
  * Diese Datenstruktur speichert den aktuellen Spielstand
+ * <ul>
+ * <li>currentStageNumber: Nummer der aktuellen Stage</li>
+ * <li>currentStage: Aktuelle Stage</li>
+ * <li>gameState: Zustand des Spiels</li>
+ * <li>lives: Anzahl der Leben, die der Spieler noch hat</li>
+ * </ul>
  */
 export interface Game {
     currentStageNumber: number;
     currentStage: Stage;
     gameState: GameState;
+    lives: number;
 }
 
 /**
@@ -42,10 +49,12 @@ export let game: Game = {
     currentStageNumber: 1,
     currentStage: stages[1],
     gameState: GameState.Intro,
+    lives: 3
 };
 
 export function resetGame(): void {
     game.currentStageNumber = 1;
     game.currentStage = stages[1];
     game.gameState = GameState.Intro;
+    game.lives = 3;
 }

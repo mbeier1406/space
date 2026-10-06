@@ -5,6 +5,8 @@
       <button type="button" (click)="stopTick()">Stop Game</button>
       <button type="button" (click)="startTick()">Resume Game</button>
       <button type="button" (click)="backToStart()">Back To Start</button>
+      <hr/>
+      <h3>Lives: {{ game.lives }}</h3>
     </aside>
     <div class="space-canvas">
       <!-- tabindex="0" um das Canvas fokussierbar zu machen -->

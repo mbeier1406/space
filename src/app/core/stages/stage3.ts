@@ -85,7 +85,8 @@ export class Stage3 extends Stage1 {
 
         // Endgame-Prüfung
         if (this.stageState === StageState.PlayerShipDead && this.ship.state === ShipState.Dead && this.bullets.length === 0) {
-            game.gameState = GameState.GameOver;
+            game.lives--;
+            game.gameState = game.lives > 0 ? GameState.Intro : GameState.GameOver;
         } else if (this.stageState === StageState.EnemyShipsDead
             && this.enemyShips.every(s => s.state === ShipState.Dead)
             && this.enemyBullets.length === 0) {
