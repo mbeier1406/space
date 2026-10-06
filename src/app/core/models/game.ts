@@ -8,10 +8,10 @@ import { Stage4 } from "../stages/stage4";
  * Speichert die Stages
  */
 export const stages : Record<number, Stage> = {
-    1: new Stage1(),
-    2: new Stage2(),
-    3: new Stage3(),
-    4: new Stage4()
+    // 1: new Stage1(),
+    // 2: new Stage2(),
+    // 3: new Stage3(),
+    1: new Stage4()
 };
 
 /**

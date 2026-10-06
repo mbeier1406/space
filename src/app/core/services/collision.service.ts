@@ -37,6 +37,7 @@ export class CollisionService {
    */
   public findHits(bullets: Bullet[], ships: Ship[]): CollisionHit[] | undefined {
     const hits: CollisionHit[] = [];
+    const hitThisFrame = new Set<number>(); // Set um zu verhindern, dass ein Schiff mehrfach von einer Kugel getroffen wird
     for (let bulletIndex = 0; bulletIndex < bullets.length; bulletIndex++) {
       const bullet = bullets[bulletIndex];
       for (let shipIndex = 0; shipIndex < ships.length; shipIndex++) {
@@ -49,6 +50,8 @@ export class CollisionService {
         const innerRight = innerLeft + iw;
         const innerBottom = innerTop + ih;        
         if (bullet.x > innerLeft && bullet.x < innerRight && bullet.y > innerTop && bullet.y < innerBottom) {
+          if (hitThisFrame.has(shipIndex)) continue;
+          hitThisFrame.add(shipIndex);          
           ship.hitsLeft--;
           hits.push({ bulletIndex, shipIndex });
           if (ship.hitsLeft <= 0) {
